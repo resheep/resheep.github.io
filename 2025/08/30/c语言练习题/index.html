@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>c语言练习题 | sheep's blog</title><meta name="author" content="sheep"><meta name="copyright" content="sheep"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="001排列组合 题目：有 1、2、3、4 四个数字，能组成多少个互不相同且无重复数字的三位数？都是多少？ 程序分析：可填在百位、十位、个位的数字都是 1、2、3、4，组成所有的排列后再去掉不满足条件的排列。 #include&lt;stdio.h&gt; int main() {     int i,j,k;     printf(&quot;\n&quot;);     for(i&#x3D;1;i&amp;lt">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>c语言练习题 | sheep's blog</title><meta name="author" content="sheep"><meta name="copyright" content="sheep"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="001排列组合 题目：有 1、2、3、4 四个数字，能组成多少个互不相同且无重复数字的三位数？都是多少？ 程序分析：可填在百位、十位、个位的数字都是 1、2、3、4，组成所有的排列后再去掉不满足条件的排列。 123456789101112131415#include&lt;stdio.h&gt;int main()&#123;    int i,j,k;    printf(&quot;\n&amp;qu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="c语言练习题">
 <meta property="og:url" content="http://resheep.github.io/2025/08/30/c%E8%AF%AD%E8%A8%80%E7%BB%83%E4%B9%A0%E9%A2%98/index.html">
 <meta property="og:site_name" content="sheep&#39;s blog">
-<meta property="og:description" content="001排列组合 题目：有 1、2、3、4 四个数字，能组成多少个互不相同且无重复数字的三位数？都是多少？ 程序分析：可填在百位、十位、个位的数字都是 1、2、3、4，组成所有的排列后再去掉不满足条件的排列。 #include&lt;stdio.h&gt; int main() {     int i,j,k;     printf(&quot;\n&quot;);     for(i&#x3D;1;i&amp;lt">
+<meta property="og:description" content="001排列组合 题目：有 1、2、3、4 四个数字，能组成多少个互不相同且无重复数字的三位数？都是多少？ 程序分析：可填在百位、十位、个位的数字都是 1、2、3、4，组成所有的排列后再去掉不满足条件的排列。 123456789101112131415#include&lt;stdio.h&gt;int main()&#123;    int i,j,k;    printf(&quot;\n&amp;qu">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/11759.png">
 <meta property="article:published_time" content="2025-08-30T02:00:00.000Z">
@@ -162,45 +162,9 @@
 }</script><link rel="stylesheet" href="/css/sheep.css"><meta name="generator" content="Hexo 8.0.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/favicon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/11759.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.png" alt="Logo"><span class="site-name">sheep's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">c语言练习题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">c语言练习题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-30T02:00:00.000Z" title="发表于 2025-08-30 10:00:00">2025-08-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-09-01T04:00:00.000Z" title="更新于 2025-09-01 12:00:00">2025-09-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%BC%96%E7%A0%81%E5%AD%A6%E4%B9%A0/">编码学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="001排列组合">001排列组合</h2>
 <p>题目：有 1、2、3、4 四个数字，能组成多少个互不相同且无重复数字的三位数？都是多少？</p>
 <p>程序分析：可填在百位、十位、个位的数字都是 1、2、3、4，组成所有的排列后再去掉不满足条件的排列。</p>
-<pre><code>#include&lt;stdio.h&gt;
-int main()
-{
-    int i,j,k;
-    printf(&quot;\n&quot;);
-    for(i=1;i&lt;5;i++) { // 以下为三重循环
-        for(j=1;j&lt;5;j++) {
-            for (k=1;k&lt;5;k++) { // 确保i、j、k三位互不相同
-                if (i!=k&amp;&amp;i!=j&amp;&amp;j!=k) { 
-                    printf(&quot;%d,%d,%d\n&quot;,i,j,k);
-                }
-            }
-        }
-    }
-}
-</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    int i,j,k;</span><br><span class="line">    printf(&quot;\n&quot;);</span><br><span class="line">    for(i=1;i&lt;5;i++) &#123; // 以下为三重循环</span><br><span class="line">        for(j=1;j&lt;5;j++) &#123;</span><br><span class="line">            for (k=1;k&lt;5;k++) &#123; // 确保i、j、k三位互不相同</span><br><span class="line">                if (i!=k&amp;&amp;i!=j&amp;&amp;j!=k) &#123; </span><br><span class="line">                        printf(&quot;%d,%d,%d\n&quot;,i,j,k);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="002结构体实例">002结构体实例</h2>
-<pre><code>#include &lt;stdio.h&gt;
-
-struct programming
-{
-    float constant;
-    char *pointer;
-};
-
-int main()
-{
-    struct programming variable;
-    char string[] = &quot;sheep's blog&quot;;
-
-    variable.constant = 1.23;
-    variable.pointer = string;
-
-    printf(&quot;%f\n&quot;, variable.constant);
-    printf(&quot;%s\n&quot;, variable.pointer);
-
-    return 0;
-}
-</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">struct programming</span><br><span class="line">&#123;</span><br><span class="line">    float constant;</span><br><span class="line">    char *pointer;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    struct programming variable;</span><br><span class="line">    char string[] = &quot;sheep&#x27;s blog&quot;;</span><br><span class="line">   </span><br><span class="line">    variable.constant = 1.23;</span><br><span class="line">    variable.pointer = string;</span><br><span class="line">   </span><br><span class="line">    printf(&quot;%f\n&quot;, variable.constant);</span><br><span class="line">    printf(&quot;%s\n&quot;, variable.pointer);</span><br><span class="line">   </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>运行结果：</p>
 <pre><code>230000 
 sheep's blog
