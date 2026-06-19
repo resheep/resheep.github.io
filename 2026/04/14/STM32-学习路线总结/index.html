@@ -1,0 +1,619 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>STM32F103C8T6 学习路线总结 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="学习路线  🔌 第一步 — GPIO 输入输出模式 理解推挽 &#x2F; 开漏 &#x2F; 上拉 &#x2F; 下拉，看懂 MOS 管电路  ⏰ 第二步 — 时钟树与系统时序 HSE → PLL → 72MHz 到底怎么来的  📡 第三步 — 通信协议 UART · I2C · SPI 芯片之间怎么说话，三种协议的选型诀窍  ⚡ 第四步 — 中断系统 NVIC · EXTI CPU 怎么高">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STM32F103C8T6 学习路线总结">
+<meta property="og:url" content="https://yujian.click/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="学习路线  🔌 第一步 — GPIO 输入输出模式 理解推挽 &#x2F; 开漏 &#x2F; 上拉 &#x2F; 下拉，看懂 MOS 管电路  ⏰ 第二步 — 时钟树与系统时序 HSE → PLL → 72MHz 到底怎么来的  📡 第三步 — 通信协议 UART · I2C · SPI 芯片之间怎么说话，三种协议的选型诀窍  ⚡ 第四步 — 中断系统 NVIC · EXTI CPU 怎么高">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yujian.click/img/butterfly-icon.png">
+<meta property="article:published_time" content="2026-04-14T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-21T08:00:00.000Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="STM32">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yujian.click/img/butterfly-icon.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "STM32F103C8T6 学习路线总结",
+  "url": "https://yujian.click/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/",
+  "image": "https://yujian.click/img/butterfly-icon.png",
+  "datePublished": "2026-04-14T08:00:00.000Z",
+  "dateModified": "2026-06-21T08:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "https://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yujian.click/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'STM32F103C8T6 学习路线总结',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">STM32F103C8T6 学习路线总结</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">STM32F103C8T6 学习路线总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-14T08:00:00.000Z" title="发表于 2026-04-14 16:00:00">2026-04-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-21T08:00:00.000Z" title="更新于 2026-06-21 16:00:00">2026-06-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="学习路线"><a href="#学习路线" class="headerlink" title="学习路线"></a>学习路线</h2><div class="timeline">
+
+<h4 id="🔌-第一步-—-GPIO-输入输出模式"><a href="#🔌-第一步-—-GPIO-输入输出模式" class="headerlink" title="🔌 第一步 — GPIO 输入输出模式"></a>🔌 第一步 — GPIO 输入输出模式</h4><blockquote>
+<p>理解推挽 &#x2F; 开漏 &#x2F; 上拉 &#x2F; 下拉，看懂 MOS 管电路</p>
+</blockquote>
+<h4 id="⏰-第二步-—-时钟树与系统时序"><a href="#⏰-第二步-—-时钟树与系统时序" class="headerlink" title="⏰ 第二步 — 时钟树与系统时序"></a>⏰ 第二步 — 时钟树与系统时序</h4><blockquote>
+<p>HSE → PLL → 72MHz 到底怎么来的</p>
+</blockquote>
+<h4 id="📡-第三步-—-通信协议-UART-·-I2C-·-SPI"><a href="#📡-第三步-—-通信协议-UART-·-I2C-·-SPI" class="headerlink" title="📡 第三步 — 通信协议 UART · I2C · SPI"></a>📡 第三步 — 通信协议 UART · I2C · SPI</h4><blockquote>
+<p>芯片之间怎么说话，三种协议的选型诀窍</p>
+</blockquote>
+<h4 id="⚡-第四步-—-中断系统-NVIC-·-EXTI"><a href="#⚡-第四步-—-中断系统-NVIC-·-EXTI" class="headerlink" title="⚡ 第四步 — 中断系统 NVIC · EXTI"></a>⚡ 第四步 — 中断系统 NVIC · EXTI</h4><blockquote>
+<p>CPU 怎么高效响应外部事件，抢占优先级怎么排</p>
+</blockquote>
+<h4 id="⏱️-第五步-—-定时器"><a href="#⏱️-第五步-—-定时器" class="headerlink" title="⏱️ 第五步 — 定时器"></a>⏱️ 第五步 — 定时器</h4><blockquote>
+<p>PWM 输出 &#x2F; 输入捕获 &#x2F; 编码器模式</p>
+</blockquote>
+<h4 id="🔌-第六步-—-ADC-模数转换"><a href="#🔌-第六步-—-ADC-模数转换" class="headerlink" title="🔌 第六步 — ADC 模数转换"></a>🔌 第六步 — ADC 模数转换</h4><blockquote>
+<p>模拟信号采集 · 单通道多通道 DMA · 定时器触发</p>
+</blockquote>
+<h4 id="💡-实战一-—-PWM-呼吸灯"><a href="#💡-实战一-—-PWM-呼吸灯" class="headerlink" title="💡 实战一 — PWM 呼吸灯"></a>💡 实战一 — PWM 呼吸灯</h4><blockquote>
+<p>第五步的定时器知识 + 正弦波算法</p>
+</blockquote>
+<h4 id="🛰️-实战二-—-MPU6050-姿态传感器"><a href="#🛰️-实战二-—-MPU6050-姿态传感器" class="headerlink" title="🛰️ 实战二 — MPU6050 姿态传感器"></a>🛰️ 实战二 — MPU6050 姿态传感器</h4><blockquote>
+<p>I2C 通信 + 定时中断 + 互补滤波 + 卡尔曼滤波</p>
+</blockquote>
+</div>
+
+<h2 id="知识体系"><a href="#知识体系" class="headerlink" title="知识体系"></a>知识体系</h2><div style="max-width:560px;margin:0 auto 20px;">
+
+<svg viewBox="0 0 560 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="50%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="50%" stop-color="#0ea5e9"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="50%" stop-color="#e11d48"/><stop offset="100%" stop-color="#be185d"/></linearGradient>
+    <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b35"/><stop offset="50%" stop-color="#f97316"/><stop offset="100%" stop-color="#ea580c"/></linearGradient>
+    <linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="50%" stop-color="#059669"/><stop offset="100%" stop-color="#047857"/></linearGradient>
+    <linearGradient id="g6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="50%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#6d28d9"/></linearGradient>
+    <linearGradient id="g7" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#14b8a6"/><stop offset="50%" stop-color="#0d9488"/><stop offset="100%" stop-color="#0f766e"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#475569"/></marker>
+  </defs>
+
+  <!-- 连接线 -->
+  <line x1="280" y1="62" x2="280" y2="90" stroke="#64748b" stroke-width="2"/>
+  <line x1="70" y1="90" x2="490" y2="90" stroke="#64748b" stroke-width="2"/>
+  <line x1="70" y1="90" x2="70" y2="115" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="90" x2="280" y2="115" stroke="#64748b" stroke-width="2"/>
+  <line x1="490" y1="90" x2="490" y2="115" stroke="#64748b" stroke-width="2"/>
+  <line x1="70" y1="165" x2="70" y2="320" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="165" x2="280" y2="320" stroke="#64748b" stroke-width="2"/>
+  <line x1="490" y1="165" x2="490" y2="320" stroke="#64748b" stroke-width="2"/>
+  <line x1="70" y1="320" x2="280" y2="320" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="320" x2="280" y2="370" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="370" x2="490" y2="370" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="370" x2="280" y2="395" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="395" x2="440" y2="395" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="395" x2="120" y2="420" stroke="#64748b" stroke-width="2"/>
+  <line x1="440" y1="395" x2="440" y2="420" stroke="#64748b" stroke-width="2"/>
+
+  <!-- 顶层：时钟树 -->
+  <rect x="155" y="15" width="250" height="47" rx="12" fill="url(#g2)" filter="url(#shadow)"/>
+  <text x="280" y="36" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">⏰ 时钟树</text>
+  <text x="280" y="54" text-anchor="middle" fill="#fff" font-size="11">HSE → PLL → 72MHz · 一切数字电路的基础</text>
+
+  <!-- 第二层：GPIO / 通信 / 定时器 -->
+  <rect x="5" y="115" width="130" height="50" rx="10" fill="url(#g1)" filter="url(#shadow)"/>
+  <text x="70" y="137" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">🔌 GPIO</text>
+  <text x="70" y="155" text-anchor="middle" fill="#fff" font-size="10">推挽 · 开漏 · 上拉 · 下拉</text>
+
+  <rect x="215" y="115" width="130" height="50" rx="10" fill="url(#g3)" filter="url(#shadow)"/>
+  <text x="280" y="137" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">📡 通信协议</text>
+  <text x="280" y="155" text-anchor="middle" fill="#fff" font-size="10">UART · I2C · SPI</text>
+
+  <rect x="425" y="115" width="130" height="50" rx="10" fill="url(#g5)" filter="url(#shadow)"/>
+  <text x="490" y="137" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">⏱️ 定时器</text>
+  <text x="490" y="155" text-anchor="middle" fill="#fff" font-size="10">PWM · 捕获 · 编码器</text>
+
+  <!-- 连接汇入中断层 -->
+  <line x1="70" y1="165" x2="70" y2="220" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="165" x2="280" y2="220" stroke="#64748b" stroke-width="2"/>
+  <line x1="490" y1="165" x2="490" y2="220" stroke="#64748b" stroke-width="2"/>
+  <line x1="70" y1="220" x2="490" y2="220" stroke="#64748b" stroke-width="2"/>
+  <line x1="280" y1="220" x2="280" y2="250" stroke="#64748b" stroke-width="2"/>
+
+  <!-- 第三层：中断 - 全宽 -->
+  <rect x="155" y="250" width="250" height="47" rx="12" fill="url(#g4)" filter="url(#shadow)"/>
+  <text x="280" y="271" text-anchor="middle" fill="#fff" font-size="16" font-weight="700">⚡ 中断系统</text>
+  <text x="280" y="289" text-anchor="middle" fill="#fff" font-size="11">NVIC + EXTI · 贯穿所有外设</text>
+
+  <!-- 连接到底层两个实战 -->
+  <line x1="280" y1="297" x2="280" y2="340" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="340" x2="440" y2="340" stroke="#64748b" stroke-width="2"/>
+  <line x1="120" y1="340" x2="120" y2="370" stroke="#64748b" stroke-width="2"/>
+  <line x1="440" y1="340" x2="440" y2="370" stroke="#64748b" stroke-width="2"/>
+
+  <!-- 第四层：实战两个 -->
+  <rect x="55" y="420" width="130" height="47" rx="10" fill="url(#g6)" filter="url(#shadow)"/>
+  <text x="120" y="442" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">💡 呼吸灯</text>
+  <text x="120" y="458" text-anchor="middle" fill="#fff" font-size="10">实践 ① · TIM + PWM</text>
+
+  <rect x="375" y="420" width="130" height="47" rx="10" fill="url(#g7)" filter="url(#shadow)"/>
+  <text x="440" y="442" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">🛰️ MPU6050</text>
+  <text x="440" y="458" text-anchor="middle" fill="#fff" font-size="10">实践 ② · I2C + 滤波</text>
+
+  <!-- 左侧标注 -->
+<p>  <text x="2" y="145" fill="#6366f1" font-size="11" font-weight="600">基础外设</text><br>  <line x1="2" y1="148" x2="28" y2="148" stroke="#6366f1" stroke-width="1.5"/></p>
+<p>  <text x="2" y="278" fill="#f97316" font-size="11" font-weight="600">外设中枢</text><br>  <line x1="2" y1="281" x2="28" y2="281" stroke="#f97316" stroke-width="1.5"/></p>
+<p>  <text x="2" y="448" fill="#10b981" font-size="11" font-weight="600">综合实战</text><br>  <line x1="2" y1="451" x2="28" y2="451" stroke="#10b981" stroke-width="1.5"/></p>
+  <!-- 分层虚线框 -->
+  <rect x="38" y="100" width="482" height="78" rx="8" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="38" y="238" width="482" height="72" rx="8" fill="none" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="38" y="408" width="482" height="72" rx="8" fill="none" stroke="#6ee7b7" stroke-width="1.5" stroke-dasharray="6,3"/>
+</svg>
+
+</div>
+
+<h2 id="文章索引"><a href="#文章索引" class="headerlink" title="文章索引"></a>文章索引</h2><style>
+.toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin: 16px 0; }
+.toc-card { display: flex; gap: 14px; padding: 18px; border-radius: 12px; background: rgba(255,255,255,.6); border: 1px solid rgba(0,0,0,.06); transition: all .25s; text-decoration: none !important; color: #1F2D3D; }
+.toc-card:visited,.toc-card:focus,.toc-card:active,.toc-card:hover { text-decoration: none !important; color: #1F2D3D; }
+.toc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.10); }
+.toc-num { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; color: #fff; flex-shrink: 0; }
+.toc-bg-blue   { background: linear-gradient(135deg, #6366f1, #a855f7); }
+.toc-bg-green  { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+.toc-bg-purple { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.toc-bg-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+.toc-bg-pink   { background: linear-gradient(135deg, #10b981, #059669); }
+.toc-bg-cyan   { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.toc-bg-teal   { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.toc-info { flex: 1; }
+.toc-info .toc-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.toc-info .toc-desc { font-size: 12px; color: #374151; font-weight: 500; line-height: 1.5; }
+@media (max-width: 600px) { .toc-grid { grid-template-columns: 1fr; } }
+</style>
+
+<h3 id="📖-基础篇-—-从裸机到外设"><a href="#📖-基础篇-—-从裸机到外设" class="headerlink" title="📖 基础篇 — 从裸机到外设"></a>📖 基础篇 — 从裸机到外设</h3><div class="toc-grid">
+
+<a class="toc-card" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/">
+  <span class="toc-num toc-bg-blue">1</span>
+  <span class="toc-info">
+    <div class="toc-title">GPIO 输入输出模式</div>
+    <div class="toc-desc">推挽 · 开漏 · 上拉 · 下拉 · MOS 管电路</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2025/11/09/STM32-%E6%97%B6%E9%92%9F%E6%A0%91%E4%B8%8E%E6%97%B6%E5%BA%8F%E8%AF%A6%E8%A7%A3/">
+  <span class="toc-num toc-bg-green">2</span>
+  <span class="toc-info">
+    <div class="toc-title">时钟树与系统时序</div>
+    <div class="toc-desc">HSE · PLL · SYSCLK · AHB · APB · FLASH_LATENCY</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2025/10/11/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/">
+  <span class="toc-num toc-bg-purple">3</span>
+  <span class="toc-info">
+    <div class="toc-title">通信协议 UART · I2C · SPI</div>
+    <div class="toc-desc">帧格式 · 异步同步 · HAL 收发 · 选型决策树</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2025/11/26/STM32-%E4%B8%AD%E6%96%AD%E7%B3%BB%E7%BB%9F-NVIC-EXTI%E8%AF%A6%E8%A7%A3/">
+  <span class="toc-num toc-bg-orange">4</span>
+  <span class="toc-info">
+    <div class="toc-title">中断系统 NVIC · EXTI</div>
+    <div class="toc-desc">抢占/子优先级 · ISR 规范 · volatile · 竞态保护</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2026/03/08/STM32-%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AF%A6%E8%A7%A3-%E5%9F%BA%E7%A1%80-%E8%BE%93%E5%87%BA%E6%AF%94%E8%BE%83-%E8%BE%93%E5%85%A5%E6%8D%95%E8%8E%B7/">
+  <span class="toc-num toc-bg-pink">5</span>
+  <span class="toc-info">
+    <div class="toc-title">定时器详解</div>
+    <div class="toc-desc">PWM 输出 · 输入捕获 · 编码器 · 主从联动</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2026/03/17/STM32-ADC%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2%E8%AF%A6%E8%A7%A3/">
+  <span class="toc-num toc-bg-cyan">6</span>
+  <span class="toc-info">
+    <div class="toc-title">ADC 模数转换详解</div>
+    <div class="toc-desc">单通道 · 多通道 · DMA · 定时器触发 · 过采样</div>
+  </span>
+</a>
+
+</div>
+
+<h3 id="🛠️-实战篇-—-把知识用起来"><a href="#🛠️-实战篇-—-把知识用起来" class="headerlink" title="🛠️ 实战篇 — 把知识用起来"></a>🛠️ 实战篇 — 把知识用起来</h3><div class="toc-grid">
+
+<a class="toc-card" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/">
+  <span class="toc-num toc-bg-cyan">7</span>
+  <span class="toc-info">
+    <div class="toc-title">PWM 呼吸灯</div>
+    <div class="toc-desc">TIM2 PWM · 正弦算法 · 多路流水呼吸</div>
+  </span>
+</a>
+
+<a class="toc-card" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/">
+  <span class="toc-num toc-bg-teal">8</span>
+  <span class="toc-info">
+    <div class="toc-title">MPU6050 姿态传感器</div>
+    <div class="toc-desc">I2C · 互补滤波 · 卡尔曼 · 定时中断</div>
+  </span>
+</a>
+
+</div>
+
+<h2 id="学习建议"><a href="#学习建议" class="headerlink" title="学习建议"></a>学习建议</h2><h3 id="🗺️-推荐阅读顺序"><a href="#🗺️-推荐阅读顺序" class="headerlink" title="🗺️ 推荐阅读顺序"></a>🗺️ 推荐阅读顺序</h3><div style="max-width:600px;margin:20px auto;">
+
+<svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+  <defs>
+    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-opacity="0.12"/></filter>
+    <linearGradient id="c1" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>
+    <linearGradient id="c2" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient>
+    <linearGradient id="c3" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#e11d48"/></linearGradient>
+    <linearGradient id="c4" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#ea580c"/></linearGradient>
+    <linearGradient id="c5" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+    <linearGradient id="c6" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="c7" x1="0" y1="0" x2="100%" y2="100%"><stop offset="0%" stop-color="#14b8a6"/><stop offset="100%" stop-color="#0d9488"/></linearGradient>
+  </defs>
+
+  <!-- 第一行：5个基础 -->
+  <rect x="8" y="30" width="72" height="44" rx="10" fill="url(#c1)" filter="url(#s)"/>
+  <text x="44" y="50" text-anchor="middle" fill="#fff" font-size="20">①</text>
+  <text x="44" y="65" text-anchor="middle" fill="#fff" font-size="9">GPIO</text>
+  <line x1="80" y1="52" x2="112" y2="52" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="116" y="30" width="72" height="44" rx="10" fill="url(#c2)" filter="url(#s)"/>
+  <text x="152" y="50" text-anchor="middle" fill="#fff" font-size="20">②</text>
+  <text x="152" y="65" text-anchor="middle" fill="#fff" font-size="9">时钟树</text>
+  <line x1="188" y1="52" x2="220" y2="52" stroke="#64748b" stroke-width="2"/>
+
+  <rect x="224" y="30" width="72" height="44" rx="10" fill="url(#c3)" filter="url(#s)"/>
+  <text x="260" y="50" text-anchor="middle" fill="#fff" font-size="20">③</text>
+  <text x="260" y="65" text-anchor="middle" fill="#fff" font-size="9">通信</text>
+  <line x1="296" y1="52" x2="328" y2="52" stroke="#64748b" stroke-width="2"/>
+
+  <rect x="332" y="30" width="72" height="44" rx="10" fill="url(#c4)" filter="url(#s)"/>
+  <text x="368" y="50" text-anchor="middle" fill="#fff" font-size="20">④</text>
+  <text x="368" y="65" text-anchor="middle" fill="#fff" font-size="9">中断</text>
+  <line x1="404" y1="52" x2="436" y2="52" stroke="#64748b" stroke-width="2"/>
+
+  <rect x="440" y="30" width="72" height="44" rx="10" fill="url(#c5)" filter="url(#s)"/>
+  <text x="476" y="50" text-anchor="middle" fill="#fff" font-size="20">⑤</text>
+  <text x="476" y="65" text-anchor="middle" fill="#fff" font-size="9">定时器</text>
+
+  <!-- 转弯线到第二行 -->
+  <path d="M476,74 L476,95 L152,95 L152,108" stroke="#64748b" stroke-width="2" fill="none"/>
+
+  <!-- 第二行：两个实战 -->
+  <rect x="116" y="112" width="72" height="44" rx="10" fill="url(#c6)" filter="url(#s)"/>
+  <text x="152" y="132" text-anchor="middle" fill="#fff" font-size="20">⑥</text>
+  <text x="152" y="147" text-anchor="middle" fill="#fff" font-size="9">呼吸灯</text>
+
+  <line x1="188" y1="134" x2="232" y2="134" stroke="#64748b" stroke-width="2"/>
+
+  <rect x="236" y="112" width="84" height="44" rx="10" fill="url(#c7)" filter="url(#s)"/>
+  <text x="278" y="132" text-anchor="middle" fill="#fff" font-size="20">⑦</text>
+  <text x="278" y="147" text-anchor="middle" fill="#fff" font-size="9">MPU6050</text>
+
+  <!-- 左右标注 -->
+<p>  <text x="44" y="20" text-anchor="middle" fill="#475569" font-size="11">基础篇</text><br>  <text x="152" y="170" text-anchor="middle" fill="#475569" font-size="11">实战篇</text></p>
+  <rect x="2" y="2" width="528" height="85" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="80" y="98" width="270" height="72" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+</svg>
+
+</div>
+
+<h3 id="🔗-项目的知识依赖"><a href="#🔗-项目的知识依赖" class="headerlink" title="🔗 项目的知识依赖"></a>🔗 项目的知识依赖</h3><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>用到的前置知识</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>呼吸灯</strong></td>
+<td><code>②时钟</code> — APB1 定时器时钟 &#x2F; <code>①GPIO</code> — 复用推挽 &#x2F; <code>⑤定时器</code> — PWM &#x2F; <code>④中断</code> — 定时中断（进阶版）</td>
+</tr>
+<tr>
+<td><strong>MPU6050</strong></td>
+<td><code>②时钟</code> — I2C 时钟使能 &#x2F; <code>①GPIO</code> — 开漏复用 &#x2F; <code>③I2C</code> — 读写寄存器 &#x2F; <code>⑤定时器</code> — 125Hz 采样 &#x2F; <code>④中断</code> — 优先级分配</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-动手节点"><a href="#🎯-动手节点" class="headerlink" title="🎯 动手节点"></a>🎯 动手节点</h3><blockquote>
+<p>每读完一篇，做一个最小实验，不要只看不练。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>读完</th>
+<th>动手做什么</th>
+<th>验证方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GPIO</td>
+<td>点亮 LED</td>
+<td>灯亮</td>
+</tr>
+<tr>
+<td>时钟树</td>
+<td>MCO(PA8) 输出 SYSCLK</td>
+<td>示波器看 72MHz</td>
+</tr>
+<tr>
+<td>通信</td>
+<td>I2C 扫描 MPU6050 地址</td>
+<td>串口打印 0x68</td>
+</tr>
+<tr>
+<td>中断</td>
+<td>按键中断翻转 LED</td>
+<td>按下翻转</td>
+</tr>
+<tr>
+<td>定时器</td>
+<td>呼吸灯</td>
+<td>渐亮渐灭</td>
+</tr>
+<tr>
+<td>ADC</td>
+<td>电位器电压采集</td>
+<td>串口打印电压值</td>
+</tr>
+<tr>
+<td>综合</td>
+<td>MPU6050 姿态解算</td>
+<td>串口输出 Roll&#x2F;Pitch</td>
+</tr>
+</tbody></table>
+<h3 id="🧰-硬件工具"><a href="#🧰-硬件工具" class="headerlink" title="🧰 硬件工具"></a>🧰 硬件工具</h3><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>参考价格</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>STM32F103C8T6</td>
+<td>~8 元</td>
+<td>主控</td>
+</tr>
+<tr>
+<td>ST-Link V2</td>
+<td>~15 元</td>
+<td>下载调试</td>
+</tr>
+<tr>
+<td>逻辑分析仪</td>
+<td>~30 元</td>
+<td>I2C&#x2F;SPI&#x2F;UART 波形分析</td>
+</tr>
+<tr>
+<td>USB-TTL</td>
+<td>~5 元</td>
+<td>串口通信</td>
+</tr>
+<tr>
+<td>面包板 + 杜邦线</td>
+<td>~10 元</td>
+<td>免焊接接线</td>
+</tr>
+</tbody></table>
+<h3 id="💪-学习心态"><a href="#💪-学习心态" class="headerlink" title="💪 学习心态"></a>💪 学习心态</h3><blockquote>
+<p>第一次配时钟 → HardFault<br>第一次调 I2C → 设备无应答<br>第一次写中断 → 程序卡死<br>第一次算 PWM → 占空比不对</p>
+</blockquote>
+<p><strong>这些都是必经之路。</strong> 每次遇到问题，逻辑分析仪看波形、示波器测频率、串口打印变量值——三板斧下去，问题解决一半。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://yujian.click/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/">https://yujian.click/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a></div><div class="post-share"><div class="social-share" data-image="/img/butterfly-icon.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">基于ROS巡航第一次技术尝试</div></div><div class="info-2"><div class="info-item-1">竞赛机器人技术文档 工作空间: /home/abot/U3SKU4机器人: 全向底盘 ABOT，RPLidar 激光雷达场地: 9×9 网格 40cm，3.6m×3.6m任务: 语音唤醒 → 4检测点VLM识别 → 任务点(31-51) → 终点   一、系统架构1234567891011121314151617181920212223麦克风(PyAudio)    │    ▼start.py (Snowboy唤醒词检测)    │  pub &quot;start&quot; → /start_mission    ▼main.py (主控节点)    │    ├─→ 检测点 [10,11,12,13]: move_base goto → VLM识别    ├─→ 任务点 [ID_MAP映射]: subprocess auto_single_point_test    └─→ 终点 [16]: move_base goto → end24    │    ▼move_base (ROS导航栈)    ├─ global_planner (Dijkstra 5Hz)    ├...</div></div></div></a><a class="pagination-related" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14936.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">ROS2 节点 话题 通信与服务基础</div></div><div class="info-2"><div class="info-item-1">一、ROS2 架构概览123456789101112131415161718┌─────────────────────────────────────────────┐│                  ROS2 系统                   ││                                              ││  ┌──────┐   Topic(/cmd_vel)   ┌──────┐      ││  │ 节点A │ ────→ 发布 ────→  │ 节点B │      ││  │ 发布者│                    │ 订阅者│      ││  └──────┘                    └──────┘      ││                                              ││  ┌──────┐   Service(/scan)   ┌──────┐      ││  │ 节点C │ ←── 请求/响应 ──→ │ 节点D │      ││  │ 客户端│...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/11/09/STM32-%E6%97%B6%E9%92%9F%E6%A0%91%E4%B8%8E%E6%97%B6%E5%BA%8F%E8%AF%A6%E8%A7%A3/" title="STM32 时钟树与系统时序详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26227.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-09</div><div class="info-item-2">STM32 时钟树与系统时序详解</div></div><div class="info-2"><div class="info-item-1">为什么时钟配置是第一道坎STM32 上电默认跑内部 8MHz HSI。不配时钟，定时器不准、串口乱码、外设不工作。理解时钟树是 STM32 开发的基础。 一、时钟源STM32F103 有 5 个时钟源： 12345                    ┌─ HSI  8MHz  RC（内部高速，默认）                    ├─ HSE  8MHz  晶振（外部高速，需外接）时钟源 ────────────  ├─ LSI  40KHz RC（内部低速，看门狗）                    ├─ LSE  32.768KHz 晶振（外部低速，RTC）                    └─ PLL  倍频输出（HIS/HSE × 2~16）     时钟源 频率 精度 用途    HSI 8MHz 差（±1%，温漂大） 默认启动，调试   HSE 4~16MHz 高（晶振 ppm 级） 正式产品必用   PLL 最高 72MHz 取决于输入源 系统时钟 SYSCLK   LSI ~40KHz 差 IWDG 独立看门狗   LSE 32.768KHz...</div></div></div></a><a class="pagination-related" href="/2026/03/17/STM32-ADC%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2%E8%AF%A6%E8%A7%A3/" title="STM32 ADC 模数转换详解 单通道 多通道 DMA"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/19009.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-17</div><div class="info-item-2">STM32 ADC 模数转换详解 单通道 多通道 DMA</div></div><div class="info-2"><div class="info-item-1">一、ADC 是什么               模拟信号（连续）      3.3V  2.5V  1.6V  0.8V  time                                                                    数字（离散）      4095  2000  0      分辨率 12 位 → 0~4095 · VREF&#x3D;3.3V → 3.3V &#x2F; 4096 ≈ 0.8mV &#x2F; LSB   二、STM32F103 ADC 特性                       ADC1 / ADC2          📥 输入通道   16 个外部 IN0~IN15   + 温度传感器 + VREF (ADC1)          🎯 分辨率   12 位（可配 10/8/6 位）   最高 1MHz @ 14MHz ADC 时钟          ⚙️ 工作模式   ├─ 单次转换   ├─ 连续转换   ├─ 扫描模式   ├─ 注入模式（高优先级）   └─ 模拟看门狗          ⚡...</div></div></div></a><a class="pagination-related" href="/2026/03/08/STM32-%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AF%A6%E8%A7%A3-%E5%9F%BA%E7%A1%80-%E8%BE%93%E5%87%BA%E6%AF%94%E8%BE%83-%E8%BE%93%E5%85%A5%E6%8D%95%E8%8E%B7/" title="STM32 定时器详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26226.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-08</div><div class="info-item-2">STM32 定时器详解</div></div><div class="info-2"><div class="info-item-1">一、定时器分类1234567F103C8T6 定时器资源：  高级定时器：TIM1, TIM8      ← 互补 PWM + 死区（电机控制）  通用定时器：TIM2, TIM3, TIM4 ← PWM + 输入捕获 + 编码器  基本定时器：TIM6, TIM7       ← 仅定时中断（无引脚输出）  高级 &gt; 通用 &gt; 基本（功能逐级减少）     功能 高级 TIM1&#x2F;8 通用 TIM2~4 基本 TIM6&#x2F;7    定时中断 ✅ ✅ ✅   PWM 输出 ✅ 互补 ✅ 4 路 ❌   输入捕获 ✅ ✅ ❌   编码器接口 ✅ ✅ ❌   死区插入 ✅ ❌ ❌   刹车输入 ✅ ❌ ❌   二、定时器本质1234567891011121314151617定时器 = 计数器 + 自动重载寄存器      CK_CNT（时钟源）        │        ▼  ┌──────────┐     ┌──────────┐  │ Prescaler│────→│ Counter  │────→ 溢出事件（中断 / DMA）  │   PS...</div></div></div></a><a class="pagination-related" href="/2025/10/11/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/" title="STM32 通信协议详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26035.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-11</div><div class="info-item-2">STM32 通信协议详解</div></div><div class="info-2"><div class="info-item-1">三种协议概览    UART I2C SPI    线数 2 (TX&#x2F;RX) 2 (SCL&#x2F;SDA) 4 (SCK&#x2F;MOSI&#x2F;MISO&#x2F;CS)   通信方式 异步，全双工 同步，半双工 同步，全双工   速度 最高 ~10Mbps 标准 100K&#x2F;400K&#x2F;1M 最高 ~50Mbps   拓扑 一对一 多设备总线（7位地址128节点） 一主多从（CS 片选）   硬件复杂度 低 中（需上拉电阻） 高（多路 CS）   STM32 外设 USART&#x2F;UART I2C1&#x2F;I2C2 SPI1&#x2F;SPI2   一、UART原理12345678910111213起始位 + 数据位(5-9) + 校验位(可选) + 停止位(0.5/1/1.5/2)空闲： ──────────────────────────────       │  S │ D0 D1 D2 D3 D4 D5 D6 D7 │ P │ STP │       └┐   └──────────────────────────┘   ...</div></div></div></a><a class="pagination-related" href="/2025/12/14/STM32-TB6612-PWM%E7%94%B5%E6%9C%BA%E9%A9%B1%E5%8A%A8/" title="STM32 + TB6612 PWM 电机驱动控制"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/10025.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-14</div><div class="info-item-2">STM32 + TB6612 PWM 电机驱动控制</div></div><div class="info-2"><div class="info-item-1">一、TB6612 简介TB6612FNG 是东芝的双路 H 桥电机驱动芯片，比 L298N 更高效（MOSFET 而非 BJT）。    特性 TB6612 L298N    驱动类型 MOSFET BJT   压降 ~0.5V ~2V   单路连续电流 1.2A 2A   峰值电流 3.2A 3A   PWM 频率 最高 100KHz 最高 25KHz   控制方式 IN1&#x2F;IN2 + PWM IN1&#x2F;IN2 + ENA   体积 小 大（带散热片）   二、引脚功能123456789101112131415          ┌─────────────────┐ GND ────┤1               24├──── VM (电机电源 2.5~13.8V) VCC ────┤2               23├──── PWMBAIN1 ────┤3               22├──── BIN2AIN2 ────┤4               21├──── BIN1PWMA ────┤5  TB6612FNG    20├────...</div></div></div></a><a class="pagination-related" href="/2025/10/20/STM32-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26452.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-20</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div><div class="info-2"><div class="info-item-1">硬件准备   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   传感器 MPU6050 模块（GY-521） 1   下载器 ST-Link V2 1   连接线 杜邦线 4 根 4   硬件连接（I2C1）12345STM32F103C8T6          MPU6050 (GY-521)    PB6  ──── SCL ────  SCL    PB7  ──── SDA ────  SDA    3.3V ──── VCC ────  VCC    GND  ──── GND ────  GND  I2C1 复用引脚：PB6&#x3D;SCL, PB7&#x3D;SDA。MPU6050 默认 7 位地址 0x68 &lt;&lt; 1 = 0xD0（AD0 接地）。 CubeMX 配置   外设 配置 说明    I2C1 Fast Mode 400KHz, PB6&#x2F;PB7 MPU6050 通信   USART1 115200-8-N-1, PA9(TX) 串口输出角度   TIM2 8ms 定时中断, 72MHz→PSC&#x3...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/resheep"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF"><span class="toc-number">1.</span> <span class="toc-text">学习路线</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%94%8C-%E7%AC%AC%E4%B8%80%E6%AD%A5-%E2%80%94-GPIO-%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 第一步 — GPIO 输入输出模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%8F%B0-%E7%AC%AC%E4%BA%8C%E6%AD%A5-%E2%80%94-%E6%97%B6%E9%92%9F%E6%A0%91%E4%B8%8E%E7%B3%BB%E7%BB%9F%E6%97%B6%E5%BA%8F"><span class="toc-number">1.2.</span> <span class="toc-text">⏰ 第二步 — 时钟树与系统时序</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%93%A1-%E7%AC%AC%E4%B8%89%E6%AD%A5-%E2%80%94-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE-UART-%C2%B7-I2C-%C2%B7-SPI"><span class="toc-number">1.3.</span> <span class="toc-text">📡 第三步 — 通信协议 UART · I2C · SPI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9A%A1-%E7%AC%AC%E5%9B%9B%E6%AD%A5-%E2%80%94-%E4%B8%AD%E6%96%AD%E7%B3%BB%E7%BB%9F-NVIC-%C2%B7-EXTI"><span class="toc-number">1.4.</span> <span class="toc-text">⚡ 第四步 — 中断系统 NVIC · EXTI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%8F%B1%EF%B8%8F-%E7%AC%AC%E4%BA%94%E6%AD%A5-%E2%80%94-%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">1.5.</span> <span class="toc-text">⏱️ 第五步 — 定时器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%94%8C-%E7%AC%AC%E5%85%AD%E6%AD%A5-%E2%80%94-ADC-%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2"><span class="toc-number">1.6.</span> <span class="toc-text">🔌 第六步 — ADC 模数转换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%92%A1-%E5%AE%9E%E6%88%98%E4%B8%80-%E2%80%94-PWM-%E5%91%BC%E5%90%B8%E7%81%AF"><span class="toc-number">1.7.</span> <span class="toc-text">💡 实战一 — PWM 呼吸灯</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%9B%B0%EF%B8%8F-%E5%AE%9E%E6%88%98%E4%BA%8C-%E2%80%94-MPU6050-%E5%A7%BF%E6%80%81%E4%BC%A0%E6%84%9F%E5%99%A8"><span class="toc-number">1.8.</span> <span class="toc-text">🛰️ 实战二 — MPU6050 姿态传感器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB"><span class="toc-number">2.</span> <span class="toc-text">知识体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E7%AB%A0%E7%B4%A2%E5%BC%95"><span class="toc-number">3.</span> <span class="toc-text">文章索引</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%96-%E5%9F%BA%E7%A1%80%E7%AF%87-%E2%80%94-%E4%BB%8E%E8%A3%B8%E6%9C%BA%E5%88%B0%E5%A4%96%E8%AE%BE"><span class="toc-number">3.1.</span> <span class="toc-text">📖 基础篇 — 从裸机到外设</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9B%A0%EF%B8%8F-%E5%AE%9E%E6%88%98%E7%AF%87-%E2%80%94-%E6%8A%8A%E7%9F%A5%E8%AF%86%E7%94%A8%E8%B5%B7%E6%9D%A5"><span class="toc-number">3.2.</span> <span class="toc-text">🛠️ 实战篇 — 把知识用起来</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.</span> <span class="toc-text">学习建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%97%BA%EF%B8%8F-%E6%8E%A8%E8%8D%90%E9%98%85%E8%AF%BB%E9%A1%BA%E5%BA%8F"><span class="toc-number">4.1.</span> <span class="toc-text">🗺️ 推荐阅读顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%97-%E9%A1%B9%E7%9B%AE%E7%9A%84%E7%9F%A5%E8%AF%86%E4%BE%9D%E8%B5%96"><span class="toc-number">4.2.</span> <span class="toc-text">🔗 项目的知识依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%8A%A8%E6%89%8B%E8%8A%82%E7%82%B9"><span class="toc-number">4.3.</span> <span class="toc-text">🎯 动手节点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%A7%B0-%E7%A1%AC%E4%BB%B6%E5%B7%A5%E5%85%B7"><span class="toc-number">4.4.</span> <span class="toc-text">🧰 硬件工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%AA-%E5%AD%A6%E4%B9%A0%E5%BF%83%E6%80%81"><span class="toc-number">4.5.</span> <span class="toc-text">💪 学习心态</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/" title="STM32F103C8T6 学习路线总结">STM32F103C8T6 学习路线总结</a><time datetime="2026-04-14T08:00:00.000Z" title="发表于 2026-04-14 16:00:00">2026-04-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14936.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ROS2 节点 话题 通信与服务基础"/></a><div class="content"><a class="title" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础">ROS2 节点 话题 通信与服务基础</a><time datetime="2026-03-22T08:00:00.000Z" title="发表于 2026-03-22 16:00:00">2026-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/17/STM32-ADC%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2%E8%AF%A6%E8%A7%A3/" title="STM32 ADC 模数转换详解 单通道 多通道 DMA"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/19009.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32 ADC 模数转换详解 单通道 多通道 DMA"/></a><div class="content"><a class="title" href="/2026/03/17/STM32-ADC%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2%E8%AF%A6%E8%A7%A3/" title="STM32 ADC 模数转换详解 单通道 多通道 DMA">STM32 ADC 模数转换详解 单通道 多通道 DMA</a><time datetime="2026-03-17T02:00:00.000Z" title="发表于 2026-03-17 10:00:00">2026-03-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/08/STM32-%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AF%A6%E8%A7%A3-%E5%9F%BA%E7%A1%80-%E8%BE%93%E5%87%BA%E6%AF%94%E8%BE%83-%E8%BE%93%E5%85%A5%E6%8D%95%E8%8E%B7/" title="STM32 定时器详解"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/26226.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32 定时器详解"/></a><div class="content"><a class="title" href="/2026/03/08/STM32-%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AF%A6%E8%A7%A3-%E5%9F%BA%E7%A1%80-%E8%BE%93%E5%87%BA%E6%AF%94%E8%BE%83-%E8%BE%93%E5%85%A5%E6%8D%95%E8%8E%B7/" title="STM32 定时器详解">STM32 定时器详解</a><time datetime="2026-03-08T06:00:00.000Z" title="发表于 2026-03-08 14:00:00">2026-03-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script src="/js/per-page-bg.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

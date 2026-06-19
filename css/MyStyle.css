@@ -112,6 +112,17 @@
   left: 36px;
 }
 
+/* 文章页标题、时间居中 */
+#post-info {
+  text-align: center;
+}
+#post-info .post-title {
+  text-align: center;
+}
+#post-info .article-meta-wrap {
+  justify-content: center;
+}
+
 /* 手机端适配 */
 @media screen and (max-width: 768px) {
   #nav #blog-info {
