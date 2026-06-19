@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 620" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <linearGradient id="camGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="100%" stop-color="#c0c0c0"/>
+    </linearGradient>
+    <linearGradient id="bracketGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="servoGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="baseGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="480" height="620" fill="#f8fafc" rx="16"/>
+
+  <!-- 标题 -->
+  <text x="240" y="40" text-anchor="middle" font-size="20" font-weight="700" fill="#1e293b">方案一：层叠式结构</text>
+
+  <!-- 负载 (摄像头) -->
+  <rect x="150" y="70" width="180" height="90" rx="10" fill="url(#camGrad)" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="190" y="85" width="100" height="50" rx="6" fill="#1e293b"/>
+  <circle cx="250" cy="110" r="14" fill="#3b82f6" opacity="0.8"/>
+  <circle cx="250" cy="110" r="6" fill="#fff" opacity="0.9"/>
+  <text x="240" y="178" text-anchor="middle" font-size="14" font-weight="600" fill="#475569">负载（摄像头）</text>
+
+  <!-- 连接线 负载→Pitch舵机 -->
+  <line x1="240" y1="160" x2="240" y2="200" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6,3"/>
+
+  <!-- Pitch 舵机 (水平放置，驱动俯仰) -->
+  <rect x="140" y="200" width="200" height="60" rx="8" fill="url(#servoGrad)" stroke="#c2410c" stroke-width="2"/>
+  <circle cx="240" cy="230" r="18" fill="#fff" opacity="0.25"/>
+  <rect x="230" y="218" width="20" height="24" rx="4" fill="#fff" opacity="0.4"/>
+  <!-- 舵机线 -->
+  <path d="M 340 230 Q 370 230 370 260" fill="none" stroke="#334155" stroke-width="2.5"/>
+
+  <text x="240" y="280" text-anchor="middle" font-size="14" font-weight="600" fill="#ea580c">俯仰舵机 (Pitch)</text>
+  <!-- 俯仰箭头 -->
+  <path d="M 125 195 Q 115 220 125 245" fill="none" stroke="#ea580c" stroke-width="2.5" marker-end="url(#arrowOrange)"/>
+  <text x="108" y="222" text-anchor="middle" font-size="11" fill="#ea580c" font-weight="600">↕ 俯仰</text>
+
+  <!-- U 型架 -->
+  <rect x="175" y="310" width="130" height="50" rx="8" fill="url(#bracketGrad)" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="240" y="340" text-anchor="middle" font-size="14" fill="#fff" font-weight="600">U 型架</text>
+
+  <!-- 水平转向柱 -->
+  <rect x="230" y="360" width="20" height="40" rx="4" fill="#94a3b8" stroke="#64748b" stroke-width="1.5"/>
+
+  <!-- Yaw 舵机 -->
+  <rect x="120" y="400" width="240" height="70" rx="10" fill="url(#servoGrad)" stroke="#c2410c" stroke-width="2"/>
+  <ellipse cx="240" cy="435" rx="25" ry="18" fill="#fff" opacity="0.2"/>
+  <circle cx="240" cy="435" r="6" fill="#fff" opacity="0.35"/>
+
+  <text x="240" y="490" text-anchor="middle" font-size="14" font-weight="600" fill="#ea580c">水平舵机 (Yaw)</text>
+
+  <!-- 旋转箭头 -->
+  <path d="M 110 410 A 20 20 0 0 0 100 435" fill="none" stroke="#ea580c" stroke-width="2.5"/>
+  <path d="M 100 435 L 95 425 M 100 435 L 108 428" fill="none" stroke="#ea580c" stroke-width="2.5"/>
+  <text x="90" y="455" text-anchor="middle" font-size="11" fill="#ea580c" font-weight="600">↻ 水平旋转</text>
+
+  <!-- 底座 -->
+  <rect x="140" y="510" width="200" height="40" rx="8" fill="url(#baseGrad)" stroke="#334155" stroke-width="2"/>
+  <text x="240" y="535" text-anchor="middle" font-size="14" fill="#fff" font-weight="600">底座</text>
+
+  <!-- 尺寸标注 -->
+  <line x1="380" y1="70" x2="400" y2="70" stroke="#94a3b8" stroke-width="1"/>
+  <line x1="400" y1="70" x2="400" y2="540" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="380" y1="540" x2="400" y2="540" stroke="#94a3b8" stroke-width="1"/>
+
+  <!-- 图例 -->
+  <rect x="30" y="570" width="14" height="14" rx="3" fill="url(#servoGrad)"/>
+  <text x="50" y="582" font-size="12" fill="#475569">舵机</text>
+  <rect x="120" y="570" width="14" height="14" rx="3" fill="url(#bracketGrad)"/>
+  <text x="140" y="582" font-size="12" fill="#475569">结构件</text>
+  <rect x="210" y="570" width="14" height="14" rx="3" fill="#94a3b8"/>
+  <text x="230" y="582" font-size="12" fill="#475569">传动件</text>
+</svg>
