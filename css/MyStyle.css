@@ -118,7 +118,7 @@
   border-radius: 12px;
 }
 #categoryBar .categoryBar-list-item:nth-child(3)::before {
-  content: '🌱'; position: absolute; inset: 0;
+  content: '⚙️'; position: absolute; inset: 0;
   padding: 12px 0 0 14px; font-size: 24px; line-height: 1; color: #fff;
   background: linear-gradient(135deg, rgba(16,185,129,.5) 0%, rgba(0,0,0,.35) 100%);
   border-radius: 12px;
