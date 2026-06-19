@@ -1,0 +1,347 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SLAM路径规划初学思路 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="SLAM路径规划技术体系与工程实现思路SLAM（同步定位与建图）为机器人提供环境表征与自身位姿估计，是路径规划的前置条件。路径规划则基于SLAM输出的地图与位姿信息，生成从起始状态到目标状态的无碰撞运动序列。二者在功能上解耦，在数据流上紧密耦合。本文从技术架构、核心算法、关键工程要素及学习路径四个维度，梳理SLAM路径规划的初学技术思路。 一、 分层规划架构当前主流移动机器人导航系统均采用全局规划">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SLAM路径规划初学思路">
+<meta property="og:url" content="https://yujian.click/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="SLAM路径规划技术体系与工程实现思路SLAM（同步定位与建图）为机器人提供环境表征与自身位姿估计，是路径规划的前置条件。路径规划则基于SLAM输出的地图与位姿信息，生成从起始状态到目标状态的无碰撞运动序列。二者在功能上解耦，在数据流上紧密耦合。本文从技术架构、核心算法、关键工程要素及学习路径四个维度，梳理SLAM路径规划的初学技术思路。 一、 分层规划架构当前主流移动机器人导航系统均采用全局规划">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg">
+<meta property="article:published_time" content="2026-05-19T22:15:19.000Z">
+<meta property="article:modified_time" content="2026-05-20T10:00:00.000Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="ROS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SLAM路径规划初学思路",
+  "url": "https://yujian.click/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/",
+  "image": "https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg",
+  "datePublished": "2026-05-19T22:15:19.000Z",
+  "dateModified": "2026-05-20T10:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "https://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yujian.click/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SLAM路径规划初学思路',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-categories-card@1.0.0/lib/categorybar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="spinner-donut"></div><div class="loading-word"><span>加载中...</span><div class="loading-dots"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div></div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  // 等待所有资源（包括图片）加载完成再结束动画
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+  }
+  // 超时保护：最多等 8 秒
+  setTimeout(preloader.endLoading, 8000)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">SLAM路径规划初学思路</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SLAM路径规划初学思路</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-19T22:15:19.000Z" title="发表于 2026-05-20 06:15:19">2026-05-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-20T10:00:00.000Z" title="更新于 2026-05-20 18:00:00">2026-05-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h3 id="SLAM路径规划技术体系与工程实现思路"><a href="#SLAM路径规划技术体系与工程实现思路" class="headerlink" title="SLAM路径规划技术体系与工程实现思路"></a>SLAM路径规划技术体系与工程实现思路</h3><p>SLAM（同步定位与建图）为机器人提供环境表征与自身位姿估计，是路径规划的前置条件。路径规划则基于SLAM输出的地图与位姿信息，生成从起始状态到目标状态的无碰撞运动序列。二者在功能上解耦，在数据流上紧密耦合。本文从技术架构、核心算法、关键工程要素及学习路径四个维度，梳理SLAM路径规划的初学技术思路。</p>
+<h3 id="一、-分层规划架构"><a href="#一、-分层规划架构" class="headerlink" title="一、 分层规划架构"></a>一、 分层规划架构</h3><p>当前主流移动机器人导航系统均采用全局规划与局部分层架构，该架构将长程路径搜索与短程实时避障解耦，兼顾计算效率与安全性。</p>
+<table>
+<thead>
+<tr>
+<th align="left">层级</th>
+<th align="left">输入</th>
+<th align="left">输出</th>
+<th align="left">核心约束</th>
+<th align="left">典型算法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">全局规划</td>
+<td align="left">静态代价地图、起点、终点</td>
+<td align="left">全局参考路径</td>
+<td align="left">静态障碍物、拓扑连通性</td>
+<td align="left">A*、Dijkstra、RRT*、Theta*</td>
+</tr>
+<tr>
+<td align="left">局部规划</td>
+<td align="left">全局路径、实时传感器数据、机器人运动学模型</td>
+<td align="left">速度&#x2F;加速度指令</td>
+<td align="left">动态障碍物、动力学约束、平滑性</td>
+<td align="left">DWA、TEB、MPC、MPPI</td>
+</tr>
+</tbody></table>
+<p>全局规划器在已知静态地图上搜索几何可行路径，不考虑动态障碍与机器人动力学；局部规划器以全局路径为引导，结合实时感知数据与运动学模型，生成满足物理约束的控制指令。两层通过标准化接口通信，支持独立替换与参数调优。</p>
+<h3 id="二、-核心算法技术要点"><a href="#二、-核心算法技术要点" class="headerlink" title="二、 核心算法技术要点"></a>二、 核心算法技术要点</h3><h4 id="1-全局规划算法"><a href="#1-全局规划算法" class="headerlink" title="1. 全局规划算法"></a>1. 全局规划算法</h4><ul>
+<li><strong>基于图搜索</strong>：A<em>与Dijkstra在离散栅格地图上保证最优性，适用于结构化环境；Theta</em>引入视线检查，生成更贴近直线的路径，减少后续局部规划的跟踪误差。</li>
+<li><strong>基于采样</strong>：RRT<em>在高维连续空间中渐进收敛至最优解，适用于复杂非结构化环境；其变体Informed RRT</em>利用椭圆采样加速收敛。</li>
+<li><strong>选型依据</strong>：低维栅格地图优先选图搜索算法；高维构型空间或非凸环境优先选采样算法。</li>
+</ul>
+<h4 id="2-局部规划算法"><a href="#2-局部规划算法" class="headerlink" title="2. 局部规划算法"></a>2. 局部规划算法</h4><ul>
+<li><strong>DWA</strong>：在速度空间采样，通过前向仿真评估轨迹得分，计算开销低，适用于差速底盘，但对动力学约束建模较弱。</li>
+<li><strong>TEB</strong>：基于时间弹性带优化，将路径平滑、避障、动力学约束统一为带约束非线性优化问题，支持阿克曼等非完整约束，但对初始值敏感。</li>
+<li><strong>MPC</strong>：显式建模系统动力学与约束，滚动优化有限时域最优控制序列，理论完备性强，计算负载较高。</li>
+<li><strong>选型依据</strong>：实时性要求高、算力受限选DWA；需严格满足动力学约束选TEB&#x2F;MPC；高动态场景可考虑MPPI等采样型MPC。</li>
+</ul>
+<h3 id="三、-关键工程要素"><a href="#三、-关键工程要素" class="headerlink" title="三、 关键工程要素"></a>三、 关键工程要素</h3><h4 id="1-代价地图构建"><a href="#1-代价地图构建" class="headerlink" title="1. 代价地图构建"></a>1. 代价地图构建</h4><p>代价地图是连接SLAM与规划的核心数据结构，通常采用多层融合架构：</p>
+<ul>
+<li><strong>静态层</strong>：加载SLAM生成的先验占据栅格地图。</li>
+<li><strong>障碍物层</strong>：融合激光雷达、深度相机等实时观测，标记动态障碍。</li>
+<li><strong>膨胀层</strong>：对障碍物进行形态学膨胀，生成安全缓冲区域。膨胀半径需满足：$$r_{\text{inflation}} \geq r_{\text{robot}} + d_{\text{safety}}$$ 其中$r_{\text{robot}}$为机器人外接圆半径，$d_{\text{safety}}$为安全余量。膨胀层缺失或参数不当是导致规划路径不可执行的首要原因。</li>
+</ul>
+<h4 id="2-运动学建模"><a href="#2-运动学建模" class="headerlink" title="2. 运动学建模"></a>2. 运动学建模</h4><p>局部规划器必须嵌入准确的机器人运动学模型。差速模型、阿克曼模型、全向轮模型的可行速度空间与控制映射完全不同。运动学约束错误会导致规划轨迹超出物理极限，引发震荡、停滞或碰撞。</p>
+<h4 id="3-坐标变换与时间同步"><a href="#3-坐标变换与时间同步" class="headerlink" title="3. 坐标变换与时间同步"></a>3. 坐标变换与时间同步</h4><ul>
+<li><strong>TF树</strong>：确保SLAM位姿、传感器坐标系、地图坐标系、基座坐标系之间的变换链完整且正确。</li>
+<li><strong>时间戳对齐</strong>：传感器数据、位姿估计、规划指令必须基于统一时间基准。时间不同步会导致代价地图错位、规划路径漂移。</li>
+</ul>
+<h3 id="四、-初学者技术学习路径"><a href="#四、-初学者技术学习路径" class="headerlink" title="四、 初学者技术学习路径"></a>四、 初学者技术学习路径</h3><ol>
+<li><strong>理论基础</strong>：掌握栅格地图表示、A*&#x2F;RRT*算法原理、机器人运动学建模、非线性优化基础。</li>
+<li><strong>仿真验证</strong>：在Gazebo&#x2F;Webots中搭建标准导航栈，依次验证全局规划、局部规划、代价地图各模块功能，记录参数与性能指标的对应关系。</li>
+<li><strong>算法对比实验</strong>：固定环境与其他参数，仅替换全局或局部规划器，量化对比路径长度、平滑度、计算耗时、成功率等指标。</li>
+<li><strong>真机部署</strong>：从简单结构化环境开始，逐步增加动态障碍与环境复杂度，基于仿真阶段积累的参数先验进行微调。</li>
+<li><strong>前沿拓展</strong>：在掌握经典分层架构后，可进一步研究语义代价地图、学习型端到端规划、大模型任务规划等技术方向。</li>
+</ol>
+<h3 id="五、-总结"><a href="#五、-总结" class="headerlink" title="五、 总结"></a>五、 总结</h3><p>SLAM路径规划的技术核心在于分层架构的理解、算法与场景的匹配、以及代价地图&#x2F;运动学&#x2F;时空同步等工程要素的精确实现。初学者应遵循“理论→仿真→对比→真机”的递进路径，避免跳过基础验证直接追求前沿算法。扎实的工程实现能力是路径规划技术落地的根本保障。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://yujian.click/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/">https://yujian.click/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ROS/">ROS</a></div><div class="post-share"><div class="social-share" data-image="https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related  no-desc" href="/2026/05/20/%E8%88%B5%E6%9C%BA%E4%BA%91%E5%8F%B0%E6%9C%BA%E6%A2%B0%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/" title="舵机云台机械结构设计思路"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/23493.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">舵机云台机械结构设计思路</div></div></div></a><a class="pagination-related  no-desc" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">基于ROS巡航第一次技术尝试</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related no-desc" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-20</div><div class="info-item-2">基于ROS巡航第一次技术尝试</div></div></div></a><a class="pagination-related no-desc" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14936.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-22</div><div class="info-item-2">ROS2 节点 话题 通信与服务基础</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/resheep"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E6%8A%80%E6%9C%AF%E4%BD%93%E7%B3%BB%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">1.</span> <span class="toc-text">SLAM路径规划技术体系与工程实现思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%88%86%E5%B1%82%E8%A7%84%E5%88%92%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">一、 分层规划架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81-%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%8A%80%E6%9C%AF%E8%A6%81%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">二、 核心算法技术要点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%85%A8%E5%B1%80%E8%A7%84%E5%88%92%E7%AE%97%E6%B3%95"><span class="toc-number">3.1.</span> <span class="toc-text">1. 全局规划算法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%B1%80%E9%83%A8%E8%A7%84%E5%88%92%E7%AE%97%E6%B3%95"><span class="toc-number">3.2.</span> <span class="toc-text">2. 局部规划算法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81-%E5%85%B3%E9%94%AE%E5%B7%A5%E7%A8%8B%E8%A6%81%E7%B4%A0"><span class="toc-number">4.</span> <span class="toc-text">三、 关键工程要素</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E4%BB%A3%E4%BB%B7%E5%9C%B0%E5%9B%BE%E6%9E%84%E5%BB%BA"><span class="toc-number">4.1.</span> <span class="toc-text">1. 代价地图构建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%BF%90%E5%8A%A8%E5%AD%A6%E5%BB%BA%E6%A8%A1"><span class="toc-number">4.2.</span> <span class="toc-text">2. 运动学建模</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%9D%90%E6%A0%87%E5%8F%98%E6%8D%A2%E4%B8%8E%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5"><span class="toc-number">4.3.</span> <span class="toc-text">3. 坐标变换与时间同步</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-%E5%88%9D%E5%AD%A6%E8%80%85%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0%E8%B7%AF%E5%BE%84"><span class="toc-number">5.</span> <span class="toc-text">四、 初学者技术学习路径</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">五、 总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/05/20/%E8%88%B5%E6%9C%BA%E4%BA%91%E5%8F%B0%E6%9C%BA%E6%A2%B0%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/" title="舵机云台机械结构设计思路"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/23493.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="舵机云台机械结构设计思路"/></a><div class="content"><a class="title" href="/2026/05/20/%E8%88%B5%E6%9C%BA%E4%BA%91%E5%8F%B0%E6%9C%BA%E6%A2%B0%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/" title="舵机云台机械结构设计思路">舵机云台机械结构设计思路</a><time datetime="2026-05-20T10:00:00.000Z" title="发表于 2026-05-20 18:00:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/" title="SLAM路径规划初学思路"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="SLAM路径规划初学思路"/></a><div class="content"><a class="title" href="/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/" title="SLAM路径规划初学思路">SLAM路径规划初学思路</a><time datetime="2026-05-19T22:15:19.000Z" title="发表于 2026-05-20 06:15:19">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/" title="STM32F103C8T6 学习路线总结">STM32F103C8T6 学习路线总结</a><time datetime="2026-04-14T08:00:00.000Z" title="发表于 2026-04-14 16:00:00">2026-04-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14936.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ROS2 节点 话题 通信与服务基础"/></a><div class="content"><a class="title" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础">ROS2 节点 话题 通信与服务基础</a><time datetime="2026-03-22T08:00:00.000Z" title="发表于 2026-03-22 16:00:00">2026-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script src="/js/per-page-bg.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+    function butterfly_categories_card_injector_config(){
+      var parent_div_git = document.getElementById('recent-posts');
+      var item_html = '<style>li.categoryBar-list-item{width:32.3%;}.categoryBar-list{max-height: 190px;overflow:auto;}.categoryBar-list::-webkit-scrollbar{width:0!important}@media screen and (max-width: 650px){.categoryBar-list{max-height: 160px;}}</style><div class="recent-post-item" style="height:auto;width:100%;padding:0px;"><div id="categoryBar"><ul class="categoryBar-list"><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/">嵌入式</a><span class="categoryBar-list-count">14</span><span class="categoryBar-list-descr">STM32/ROS/嵌入式实战</span></li><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/学习笔记/">学习笔记</a><span class="categoryBar-list-count">12</span><span class="categoryBar-list-descr">学习笔记与总结</span></li><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/14063.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/机械设计/">机械设计</a><span class="categoryBar-list-count">1</span><span class="categoryBar-list-descr">机械结构设计</span></li></ul></div></div>';
+      console.log('已挂载butterfly_categories_card')
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+      }
+    if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    butterfly_categories_card_injector_config()
+    }
+  </script><!-- hexo injector body_end end --></body></html>
