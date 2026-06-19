@@ -4783,7 +4783,9 @@ figure.highlight pre .javascript .function {
   z-index: 1000;
   width: 50%;
   height: 100%;
-  background-color: var(--preloader-bg);
+  background-color: rgba(255,255,255,0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 #loading-box .loading-right-bg {
   right: 0;
@@ -4818,6 +4820,7 @@ figure.highlight pre .javascript .function {
   -ms-flex-direction: column;
   flex-direction: column;
   gap: 28px;
+  background-color: transparent;
 /* ===== 双环旋转 ===== */
 /* ===== 文字 ===== */
 }
@@ -4851,7 +4854,7 @@ figure.highlight pre .javascript .function {
 }
 #loading-box .spinner-box .loading-word {
   position: relative;
-  color: var(--preloader-color);
+  color: #64748b;
   font-size: 15px;
   letter-spacing: 4px;
   text-transform: uppercase;
@@ -4909,7 +4912,6 @@ figure.highlight pre .javascript .function {
 }
 #loading-box.loaded .loading-left-bg,
 #loading-box.loaded .loading-right-bg {
-  background-color: #fff;
   opacity: 0;
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
   filter: alpha(opacity=0);
