@@ -1,21 +1,9 @@
-/*文章的整体背景，渐变色设置*/
+/* ========== 默认整页背景 ========== */
 #web_bg {
-	background-image: linear-gradient(to top, #fff1eb 0%, #ace0f9 100%);
-	#background: #FFEFBA;
-	/* fallback for old browsers */
-	#background: -webkit-linear-gradient(to right, #FFFFFF, #FFEFBA);
-	/* Chrome 10-25, Safari 5.1-6 */
-	#background: linear-gradient(to right, #FFFFFF, #FFEFBA);
-	/* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-	background: #2BC0E4;
-	/* fallback for old browsers */
-	background: -webkit-linear-gradient(to right, #EAECC6, #2BC0E4);
-	/* Chrome 10-25, Safari 5.1-6 */
-	background: linear-gradient(to right, #EAECC6, #2BC0E4);
-	/* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-
+  background: url(/img/index-banner.jpg) center/cover no-repeat fixed;
 }
 
+/* ========== 卡片/内容区半透明 ========== */
 /* 主页所有文章页面背景 */
 #aside_content .card-widget,
 #recent-posts>.recent-post-item,
@@ -23,64 +11,63 @@
 .layout_post>#page,
 .layout_post>#post,
 .read-mode .layout_post>#post {
-	/* 以下代表透明度为0.5 */
-	background: rgba(255, 255, 255, .5);
+  background: rgba(255, 255, 255, .5);
 }
 
 /*侧边栏页面*/
 #aside-content>.card-widget {
-	background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .6);
 }
 
 #aside-content>.sticky_layout>.card-widget {
-	background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .6);
 }
 
 /*文章页面*/
 .layout>#post {
-	background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .6);
 }
 
 /*分类页面*/
 .layout>#page {
-
-	background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .6);
 }
 
 /*时间轴页面*/
 .layout>#archive {
-	background: rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .6);
 }
 
+/* ========== 导航栏样式 ========== */
 /* 菜单栏居中 + 渐变(仅显示时可见) */
 #nav {
-	justify-content: center;
+  justify-content: center;
 }
 
 /* 菜单栏可见后显示渐变，底部白色与页面缝合 */
 #nav.show {
-	background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
+  background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
 }
 
 /* 非首页时菜单栏始终可见，保持渐变 */
 #page-header.not-top-img #nav {
-	background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
+  background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
 }
 
 /* 固定导航栏时也保持渐变 */
 #page-header.nav-fixed #nav {
-	background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
+  background: linear-gradient(to bottom, #ffb6c1, #87ceeb, #ffffff);
 }
 
 #nav #blog-info {
-	flex: none;
-	position: absolute;
-	left: 36px;
+  flex: none;
+  position: absolute;
+  left: 36px;
 }
 
 /* 手机端适配 */
 @media screen and (max-width: 768px) {
-	#nav #blog-info {
-		left: 16px;
-	}
+  #nav #blog-info {
+    left: 16px;
+  }
 }
