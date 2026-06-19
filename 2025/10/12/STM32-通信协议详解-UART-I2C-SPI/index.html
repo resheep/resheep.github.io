@@ -1,0 +1,462 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>STM32 通信协议详解 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="三种协议概览    UART I2C SPI    线数 2 (TX&#x2F;RX) 2 (SCL&#x2F;SDA) 4 (SCK&#x2F;MOSI&#x2F;MISO&#x2F;CS)   通信方式 异步，全双工 同步，半双工 同步，全双工   速度 最高 ~10Mbps 标准 100K&#x2F;400K&#x2F;1M 最高 ~50Mbps   拓扑 一对一 多设备总线（7位地址128">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STM32 通信协议详解">
+<meta property="og:url" content="https://yujian.click/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="三种协议概览    UART I2C SPI    线数 2 (TX&#x2F;RX) 2 (SCL&#x2F;SDA) 4 (SCK&#x2F;MOSI&#x2F;MISO&#x2F;CS)   通信方式 异步，全双工 同步，半双工 同步，全双工   速度 最高 ~10Mbps 标准 100K&#x2F;400K&#x2F;1M 最高 ~50Mbps   拓扑 一对一 多设备总线（7位地址128">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg">
+<meta property="article:published_time" content="2025-10-12T14:00:00.000Z">
+<meta property="article:modified_time" content="2025-12-10T14:00:00.000Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="STM32">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "STM32 通信协议详解",
+  "url": "https://yujian.click/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/",
+  "image": "https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg",
+  "datePublished": "2025-10-12T14:00:00.000Z",
+  "dateModified": "2025-12-10T14:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "https://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yujian.click/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'STM32 通信协议详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">STM32 通信协议详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">STM32 通信协议详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-12T14:00:00.000Z" title="发表于 2025-10-12 22:00:00">2025-10-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-12-10T14:00:00.000Z" title="更新于 2025-12-10 22:00:00">2025-12-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="三种协议概览"><a href="#三种协议概览" class="headerlink" title="三种协议概览"></a>三种协议概览</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>UART</th>
+<th>I2C</th>
+<th>SPI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>线数</td>
+<td>2 (TX&#x2F;RX)</td>
+<td>2 (SCL&#x2F;SDA)</td>
+<td>4 (SCK&#x2F;MOSI&#x2F;MISO&#x2F;CS)</td>
+</tr>
+<tr>
+<td>通信方式</td>
+<td>异步，全双工</td>
+<td>同步，半双工</td>
+<td>同步，全双工</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>最高 ~10Mbps</td>
+<td>标准 100K&#x2F;400K&#x2F;1M</td>
+<td>最高 ~50Mbps</td>
+</tr>
+<tr>
+<td>拓扑</td>
+<td>一对一</td>
+<td>多设备总线（7位地址128节点）</td>
+<td>一主多从（CS 片选）</td>
+</tr>
+<tr>
+<td>硬件复杂度</td>
+<td>低</td>
+<td>中（需上拉电阻）</td>
+<td>高（多路 CS）</td>
+</tr>
+<tr>
+<td>STM32 外设</td>
+<td>USART&#x2F;UART</td>
+<td>I2C1&#x2F;I2C2</td>
+<td>SPI1&#x2F;SPI2</td>
+</tr>
+</tbody></table>
+<h2 id="一、UART"><a href="#一、UART" class="headerlink" title="一、UART"></a>一、UART</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">起始位 + 数据位(5-9) + 校验位(可选) + 停止位(0.5/1/1.5/2)</span><br><span class="line"></span><br><span class="line">空闲： ──────────────────────────────</span><br><span class="line">       │  S │ D0 D1 D2 D3 D4 D5 D6 D7 │ P │ STP │</span><br><span class="line">       └┐   └──────────────────────────┘   └┐    └── 空闲</span><br><span class="line">        └─ 0 ─┘               └─ 1 ─┘         └─ 1 ─┘</span><br><span class="line"></span><br><span class="line">S=起始位(0), D=数据(LSB先), P=校验(可选), STP=停止位(1)</span><br><span class="line"></span><br><span class="line">例：发送 0x41 (01000001b)，8N1 格式</span><br><span class="line">   0 10000010 1</span><br><span class="line">   ↑ ↑       ↑</span><br><span class="line">   起 LSB→MSB 停</span><br></pre></td></tr></table></figure>
+
+<h3 id="异步机制"><a href="#异步机制" class="headerlink" title="异步机制"></a>异步机制</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">UART 没有时钟线。接收方如何知道什么时候采样？</span><br><span class="line"></span><br><span class="line">① 双方约定同样的波特率（如 115200bps）</span><br><span class="line">② 起始位的下降沿触发接收时钟</span><br><span class="line">③ 接收方在每位中点采样（16 倍过采样）</span><br><span class="line"></span><br><span class="line">发送方 TX  ─── 115200bps ───→  RX 接收方</span><br><span class="line"></span><br><span class="line">       ┌──1 bit @115200 = 8.68μs──┐</span><br><span class="line">       │                          │</span><br><span class="line">TX:    │ 0  │ 1 │ 0 │ 0 │ 0 │ 0 │ 0 │ 1 │ 0 │ 1 │</span><br><span class="line">       └────┴───┴───┴───┴───┴───┴───┴───┴───┴───┘</span><br><span class="line"></span><br><span class="line">RX 在   ↑     ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑   ↑</span><br><span class="line">每个位中点采样（由内部 16× 时钟定位）</span><br></pre></td></tr></table></figure>
+
+<h3 id="STM32-HAL-配置"><a href="#STM32-HAL-配置" class="headerlink" title="STM32 HAL 配置"></a>STM32 HAL 配置</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">UART_HandleTypeDef huart1;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">MX_USART1_UART_Init</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    huart1.Instance = USART1;</span><br><span class="line">    huart1.Init.BaudRate = <span class="number">115200</span>;</span><br><span class="line">    huart1.Init.WordLength = UART_WORDLENGTH_8B;</span><br><span class="line">    huart1.Init.StopBits = UART_STOPBITS_1;</span><br><span class="line">    huart1.Init.Parity = UART_PARITY_NONE;</span><br><span class="line">    huart1.Init.Mode = UART_MODE_TX_RX;</span><br><span class="line">    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;</span><br><span class="line">    huart1.Init.OverSampling = UART_OVERSAMPLING_16;</span><br><span class="line">    HAL_UART_Init(&amp;huart1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="三种收发方式"><a href="#三种收发方式" class="headerlink" title="三种收发方式"></a>三种收发方式</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 1. 阻塞（简单，浪费时间） */</span></span><br><span class="line"><span class="type">uint8_t</span> rx;</span><br><span class="line">HAL_UART_Transmit(&amp;huart1, <span class="string">&quot;hello\r\n&quot;</span>, <span class="number">7</span>, <span class="number">1000</span>);  <span class="comment">// 发，超时1s</span></span><br><span class="line">HAL_UART_Receive(&amp;huart1, &amp;rx, <span class="number">1</span>, <span class="number">1000</span>);           <span class="comment">// 收，阻塞等待</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 2. 中断（推荐，不占 CPU） */</span></span><br><span class="line">HAL_UART_Transmit_IT(&amp;huart1, tx_buf, len);         <span class="comment">// 发送中断</span></span><br><span class="line">HAL_UART_Receive_IT(&amp;huart1, &amp;rx_byte, <span class="number">1</span>);          <span class="comment">// 每收1字节进中断</span></span><br><span class="line"><span class="comment">// 回调：void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 3. DMA（大批量数据，CPU 完全不参与） */</span></span><br><span class="line">HAL_UART_Transmit_DMA(&amp;huart1, tx_buf, <span class="number">1024</span>);</span><br><span class="line">HAL_UART_Receive_DMA(&amp;huart1, rx_buf, <span class="number">1024</span>);</span><br><span class="line"><span class="comment">// 回调：void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="常用场景"><a href="#常用场景" class="headerlink" title="常用场景"></a>常用场景</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>配置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>串口调试</td>
+<td>115200-8N1</td>
+<td>printf 重定向</td>
+</tr>
+<tr>
+<td>GPS 模块</td>
+<td>9600-8N1</td>
+<td>标准 NMEA 协议</td>
+</tr>
+<tr>
+<td>HC-05 蓝牙</td>
+<td>9600-8N1</td>
+<td>AT 命令 + 透传</td>
+</tr>
+<tr>
+<td>RS485</td>
+<td>+485 芯片 + 方向控制</td>
+<td>差分信号，抗干扰</td>
+</tr>
+<tr>
+<td>Modbus</td>
+<td>9600-8E1</td>
+<td>工业协议，偶校验</td>
+</tr>
+</tbody></table>
+<h2 id="二、I2C"><a href="#二、I2C" class="headerlink" title="二、I2C"></a>二、I2C</h2><h3 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">       SCL  ┌─┬─┐ ┌─┬─┐ ┌─┬─┐ ┌─┬─┐</span><br><span class="line">            ┘ └─┘ └─┘ └─┘ └─┘ └─┘ └─</span><br><span class="line"></span><br><span class="line">       SDA  ────┐     ┌─┐     ┌─┐</span><br><span class="line">                └─────┘ └─────┘ └──</span><br><span class="line">              START    D7..D0  ACK  STOP</span><br><span class="line"></span><br><span class="line">帧格式:</span><br><span class="line">  START │ 地址(7b)+R/W │ ACK │ 数据(8b) │ ACK │ ... │ STOP</span><br><span class="line"></span><br><span class="line">所有从设备共挂 SCL/SDA，主机通过地址选择通信对象。</span><br><span class="line">SCL 始终由主机产生，SDA 双向开漏（需外部上拉电阻 4.7KΩ）。</span><br></pre></td></tr></table></figure>
+
+<h3 id="起始-停止条件"><a href="#起始-停止条件" class="headerlink" title="起始&#x2F;停止条件"></a>起始&#x2F;停止条件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">SCL 高电平时 SDA 的变化定义起始和停止：</span><br><span class="line"></span><br><span class="line">    SDA ──┐          ┌──</span><br><span class="line">           └─ START   │   ┌─ STOP</span><br><span class="line">    SCL ──────┐  ┌────┼───┼────</span><br><span class="line">              │  │    │   │</span><br><span class="line">              ①  ②    ③   ④</span><br><span class="line"></span><br><span class="line">① SDA 下降 + SCL 高 → START</span><br><span class="line">② SDA 数据变化只能在 SCL 低时</span><br><span class="line">③ SDA 上升 + SCL 高 → STOP</span><br><span class="line">④ 总线释放（SDA 被上拉电阻拉高）</span><br></pre></td></tr></table></figure>
+
+<h3 id="STM32-HAL-配置-1"><a href="#STM32-HAL-配置-1" class="headerlink" title="STM32 HAL 配置"></a>STM32 HAL 配置</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">I2C_HandleTypeDef hi2c1;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">MX_I2C1_Init</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    hi2c1.Instance = I2C1;</span><br><span class="line">    hi2c1.Init.ClockSpeed = <span class="number">400000</span>;              <span class="comment">// 400KHz 快速模式</span></span><br><span class="line">    hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;</span><br><span class="line">    hi2c1.Init.OwnAddress1 = <span class="number">0</span>;                  <span class="comment">// 主机模式地址忽略</span></span><br><span class="line">    hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;</span><br><span class="line">    hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;</span><br><span class="line">    hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;</span><br><span class="line">    hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;</span><br><span class="line">    HAL_I2C_Init(&amp;hi2c1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="读写操作"><a href="#读写操作" class="headerlink" title="读写操作"></a>读写操作</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 写寄存器：设备地址(7位&lt;&lt;1) + 寄存器地址 + 数据 */</span></span><br><span class="line">HAL_I2C_Mem_Write(&amp;hi2c1, <span class="number">0x68</span> &lt;&lt; <span class="number">1</span>, reg_addr,</span><br><span class="line">                  I2C_MEMADD_SIZE_8BIT, &amp;data, <span class="number">1</span>, <span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 读寄存器：同上，方向改为读 */</span></span><br><span class="line">HAL_I2C_Mem_Read(&amp;hi2c1, <span class="number">0x68</span> &lt;&lt; <span class="number">1</span>, reg_addr,</span><br><span class="line">                 I2C_MEMADD_SIZE_8BIT, buf, len, <span class="number">200</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 简单读写（无寄存器地址的设备） */</span></span><br><span class="line">HAL_I2C_Master_Transmit(&amp;hi2c1, dev_addr &lt;&lt; <span class="number">1</span>, tx_buf, len, <span class="number">100</span>);</span><br><span class="line">HAL_I2C_Master_Receive(&amp;hi2c1, dev_addr &lt;&lt; <span class="number">1</span>, rx_buf, len, <span class="number">200</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="常见设备地址"><a href="#常见设备地址" class="headerlink" title="常见设备地址"></a>常见设备地址</h3><table>
+<thead>
+<tr>
+<th>设备</th>
+<th>7位地址</th>
+<th>8位地址（&lt;&lt;1）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MPU6050</td>
+<td>0x68</td>
+<td>0xD0</td>
+<td>AD0&#x3D;GND</td>
+</tr>
+<tr>
+<td>SSD1306 OLED</td>
+<td>0x3C</td>
+<td>0x78</td>
+<td>I2C 显示</td>
+</tr>
+<tr>
+<td>AT24C02 EEPROM</td>
+<td>0x50</td>
+<td>0xA0</td>
+<td>存储芯片</td>
+</tr>
+<tr>
+<td>DS3231 RTC</td>
+<td>0x68</td>
+<td>0xD0</td>
+<td>实时时钟</td>
+</tr>
+<tr>
+<td>BME280</td>
+<td>0x76</td>
+<td>0xEC</td>
+<td>温湿压传感器</td>
+</tr>
+</tbody></table>
+<h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1. SCL/SDA 一直被拉低</span><br><span class="line">   → 某个从设备把总线锁住了。断电重开，或给 SCL 发 9 个时钟脉冲释放总线。</span><br><span class="line"></span><br><span class="line">2. HAL_I2C_Mem_Read 返回 HAL_ERROR</span><br><span class="line">   → 设备地址不对（注意是 7 位还是 8 位）</span><br><span class="line">   → 上拉电阻太大（&gt;10KΩ），换 4.7KΩ 或 2.2KΩ</span><br><span class="line"></span><br><span class="line">3. 偶尔通信失败</span><br><span class="line">   → 上拉电阻接触不良</span><br><span class="line">   → 线太长（&gt;30cm），降低频率到 100KHz</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、SPI"><a href="#三、SPI" class="headerlink" title="三、SPI"></a>三、SPI</h2><h3 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">        SCK ─────┐  ┌───┐  ┌───</span><br><span class="line">                 └──┘   └──┘   └──  (主机产生)</span><br><span class="line">        MOSI ────┬───┬───┬───┬───  (Master Out Slave In)</span><br><span class="line">        MISO ────┬───┬───┬───┬───  (Master In Slave Out)</span><br><span class="line">         CS ─────┘               └─ (片选，低有效)</span><br><span class="line"></span><br><span class="line">全双工：MOSI 和 MISO 同时传输，每个时钟沿交换一位。</span><br><span class="line"></span><br><span class="line">         ┌── CPOL=0 ──┐     ┌── CPOL=1 ──┐</span><br><span class="line">SCK:  ───┐         ┌───  ───┐         ┌───</span><br><span class="line">         └─────────┘         └─────────┘</span><br><span class="line"></span><br><span class="line">CPHA=0: 第1个边沿采样    CPHA=1: 第2个边沿采样</span><br><span class="line"></span><br><span class="line">共 4 种模式 (CPOL/CPHA)，主从双方必须一致。</span><br><span class="line">模式 0 (CPOL=0,CPHA=0) 最常用。</span><br></pre></td></tr></table></figure>
+
+<h3 id="STM32-HAL-配置-2"><a href="#STM32-HAL-配置-2" class="headerlink" title="STM32 HAL 配置"></a>STM32 HAL 配置</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">SPI_HandleTypeDef hspi1;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">MX_SPI1_Init</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">    hspi1.Instance = SPI1;</span><br><span class="line">    hspi1.Init.Mode = SPI_MODE_MASTER;           <span class="comment">// 主机模式</span></span><br><span class="line">    hspi1.Init.Direction = SPI_DIRECTION_2LINES; <span class="comment">// 双线全双工</span></span><br><span class="line">    hspi1.Init.DataSize = SPI_DATASIZE_8BIT;</span><br><span class="line">    hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;   <span class="comment">// CPOL=0</span></span><br><span class="line">    hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;       <span class="comment">// CPHA=0</span></span><br><span class="line">    hspi1.Init.NSS = SPI_NSS_SOFT;               <span class="comment">// 软件控制 CS</span></span><br><span class="line">    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16; <span class="comment">// 72M/16=4.5M</span></span><br><span class="line">    hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;      <span class="comment">// 高位在前</span></span><br><span class="line">    hspi1.Init.TIMode = SPI_TIMODE_DISABLE;</span><br><span class="line">    hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;</span><br><span class="line">    HAL_SPI_Init(&amp;hspi1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="读写操作-1"><a href="#读写操作-1" class="headerlink" title="读写操作"></a>读写操作</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 收发同时（全双工） */</span></span><br><span class="line"><span class="type">uint8_t</span> tx[<span class="number">2</span>] = &#123;<span class="number">0x80</span>, <span class="number">0x00</span>&#125;;  <span class="comment">// 寄存器地址 + 空字节</span></span><br><span class="line"><span class="type">uint8_t</span> rx[<span class="number">2</span>];</span><br><span class="line">HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);  <span class="comment">// CS 拉低</span></span><br><span class="line">HAL_SPI_TransmitReceive(&amp;hspi1, tx, rx, <span class="number">2</span>, <span class="number">100</span>);</span><br><span class="line">HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);    <span class="comment">// CS 拉高</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 仅发送 */</span></span><br><span class="line">HAL_SPI_Transmit(&amp;hspi1, tx_buf, len, <span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* DMA 高速传输 */</span></span><br><span class="line">HAL_SPI_TransmitReceive_DMA(&amp;hspi1, tx, rx, <span class="number">1024</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、三种协议怎么选"><a href="#四、三种协议怎么选" class="headerlink" title="四、三种协议怎么选"></a>四、三种协议怎么选</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">┌──────────────────────────────────────────────────┐</span><br><span class="line">│                   选型流程                         │</span><br><span class="line">├──────────────────────────────────────────────────┤</span><br><span class="line">│ 需要多个设备通信？                                 │</span><br><span class="line">│   ├─ 是 → 设备 &gt; 2？                              │</span><br><span class="line">│   │       ├─ 是 → 每个设备需要独立 CS → 选 SPI    │</span><br><span class="line">│   │       └─ 否 → 选 I2C（两根线可挂 128 设备）    │</span><br><span class="line">│   └─ 否 → 选 UART（最简单）                        │</span><br><span class="line">│                                                    │</span><br><span class="line">│ 速度要求？                                         │</span><br><span class="line">│   ├─ &gt; 1Mbps → 选 SPI                             │</span><br><span class="line">│   ├─ 100K~1M → I2C 快速模式 / UART 高波特率        │</span><br><span class="line">│   └─ &lt; 100K → 都可以                               │</span><br><span class="line">│                                                    │</span><br><span class="line">│ 线数限制？                                         │</span><br><span class="line">│   ├─ 2 线 → UART / I2C                            │</span><br><span class="line">│   └─ 不限 → SPI                                    │</span><br><span class="line">│                                                    │</span><br><span class="line">│ 距离 &gt; 1m？                                        │</span><br><span class="line">│   ├─ 是 → RS232/RS485（UART 电平转换）              │</span><br><span class="line">│   └─ 否 → 都可以                                   │</span><br><span class="line">└──────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、实战对比（读取一个传感器）"><a href="#五、实战对比（读取一个传感器）" class="headerlink" title="五、实战对比（读取一个传感器）"></a>五、实战对比（读取一个传感器）</h2><table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>UART（GPS 模块）</th>
+<th>I2C（MPU6050）</th>
+<th>SPI（BME280）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>初始化</td>
+<td><code>HAL_UART_Init()</code></td>
+<td><code>HAL_I2C_Init()</code></td>
+<td><code>HAL_SPI_Init()</code></td>
+</tr>
+<tr>
+<td>读取</td>
+<td><code>HAL_UART_Receive_IT()</code> 逐字节解析</td>
+<td><code>HAL_I2C_Mem_Read()</code> 读寄存器</td>
+<td><code>HAL_SPI_TransmitReceive()</code> 全双工</td>
+</tr>
+<tr>
+<td>解析</td>
+<td>查 NMEA 协议，找 <code>$GPRMC</code></td>
+<td>高&#x2F;低字节拼 &#96;(H&lt;&lt;8)</td>
+<td>L&#96;</td>
+</tr>
+<tr>
+<td>调试</td>
+<td>逻辑分析仪 + 串口助手</td>
+<td>逻辑分析仪看 SCL&#x2F;SDA</td>
+<td>逻辑分析仪 4 线</td>
+</tr>
+</tbody></table>
+<h2 id="六、CubeMX-配置速查"><a href="#六、CubeMX-配置速查" class="headerlink" title="六、CubeMX 配置速查"></a>六、CubeMX 配置速查</h2><table>
+<thead>
+<tr>
+<th>外设</th>
+<th>CubeMX 要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>USART1</td>
+<td>Mode: Asynchronous, PA9&#x3D;TX, PA10&#x3D;RX</td>
+</tr>
+<tr>
+<td>USART2</td>
+<td>PA2&#x3D;TX, PA3&#x3D;RX（常用蓝牙接这里）</td>
+</tr>
+<tr>
+<td>I2C1</td>
+<td>PB6&#x3D;SCL, PB7&#x3D;SDA, Speed: Fast Mode</td>
+</tr>
+<tr>
+<td>I2C2</td>
+<td>PB10&#x3D;SCL, PB11&#x3D;SDA</td>
+</tr>
+<tr>
+<td>SPI1</td>
+<td>PA5&#x3D;SCK, PA7&#x3D;MOSI, PA6&#x3D;MISO</td>
+</tr>
+<tr>
+<td>SPI2</td>
+<td>PB13&#x3D;SCK, PB15&#x3D;MOSI, PB14&#x3D;MISO</td>
+</tr>
+</tbody></table>
+<h2 id="七、调试技巧"><a href="#七、调试技巧" class="headerlink" title="七、调试技巧"></a>七、调试技巧</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">1. 逻辑分析仪是最重要的调试工具</span><br><span class="line">   → Saleae Logic 8 (淘宝 ~30 元克隆版)</span><br><span class="line">   → 直接看波形，比代码调试快 10 倍</span><br><span class="line"></span><br><span class="line">2. UART 调试：先用 USB-TTL 接电脑验证 TX/RX</span><br><span class="line">   → 确保波特率、数据位、停止位一致</span><br><span class="line">   → 短接 TX/RX 自发自收验证硬件</span><br><span class="line"></span><br><span class="line">3. I2C 调试：</span><br><span class="line">   → 用逻辑分析仪看 START/STOP/ACK</span><br><span class="line">   → i2c_scanner 代码扫描所有地址，确认设备在线</span><br><span class="line"></span><br><span class="line">4. SPI 调试：</span><br><span class="line">   → CS 线最容易忘记拉低/拉高</span><br><span class="line">   → 检查 CPOL/CPHA 是否与数据手册一致</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://yujian.click/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/">https://yujian.click/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a></div><div class="post-share"><div class="social-share" data-image="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div><div class="info-2"><div class="info-item-1">硬件准备   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   传感器 MPU6050 模块（GY-521） 1   下载器 ST-Link V2 1   连接线 杜邦线 4 根 4   硬件连接（I2C1）12345STM32F103C8T6          MPU6050 (GY-521)    PB6  ──── SCL ────  SCL    PB7  ──── SDA ────  SDA    3.3V ──── VCC ────  VCC    GND  ──── GND ────  GND  I2C1 复用引脚：PB6&#x3D;SCL, PB7&#x3D;SDA。MPU6050 默认 7 位地址 0x68 &lt;&lt; 1 = 0xD0（AD0 接地）。 CubeMX 配置   外设 配置 说明    I2C1 Fast Mode 400KHz, PB6&#x2F;PB7 MPU6050 通信   USART1 115200-8-N-1, PA9(TX) 串口输出角度   TIM2 8ms 定时中断, 72MHz→PSC&#x3...</div></div></div></a><a class="pagination-related" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">STM32F103C8T6 HAL库 PWM 呼吸灯</div></div><div class="info-2"><div class="info-item-1">硬件需求   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   LED 5mm 发光二极管 1   电阻 220Ω（限流） 1   下载器 ST-Link V2 1   硬件连接12STM32F103C8T6              LED    PA0  ──── PWM ────  (220Ω) ────  LED(+) ──── GND  TIM2_CH1 复用 PA0 输出 PWM，占空比 0%→100%→0% 循环实现呼吸效果。 PWM 原理123456789101112131415PWM（Pulse Width Modulation）脉冲宽度调制：固定频率下，调节高电平占比（占空比）来控制平均输出电压。周期 T = 1/f，占空比 = t_on / T × 100%高电平 ┌────┐    ┌────┐  25%  → LED 微亮低电平 └────┴────┴────┘高电平 ┌──────┐  ┌──────┐  50%  → LED 半亮低电平 └──────┴──┴──────┘高电平 ┌────────┐┌────────┐ ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-20</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div><div class="info-2"><div class="info-item-1">硬件准备   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   传感器 MPU6050 模块（GY-521） 1   下载器 ST-Link V2 1   连接线 杜邦线 4 根 4   硬件连接（I2C1）12345STM32F103C8T6          MPU6050 (GY-521)    PB6  ──── SCL ────  SCL    PB7  ──── SDA ────  SDA    3.3V ──── VCC ────  VCC    GND  ──── GND ────  GND  I2C1 复用引脚：PB6&#x3D;SCL, PB7&#x3D;SDA。MPU6050 默认 7 位地址 0x68 &lt;&lt; 1 = 0xD0（AD0 接地）。 CubeMX 配置   外设 配置 说明    I2C1 Fast Mode 400KHz, PB6&#x2F;PB7 MPU6050 通信   USART1 115200-8-N-1, PA9(TX) 串口输出角度   TIM2 8ms 定时中断, 72MHz→PSC&#x3...</div></div></div></a><a class="pagination-related" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/" title="STM32 GPIO 推挽&#x2F;开漏&#x2F;上拉&#x2F;下拉 输入输出模式详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-09</div><div class="info-item-2">STM32 GPIO 推挽&#x2F;开漏&#x2F;上拉&#x2F;下拉 输入输出模式详解</div></div><div class="info-2"><div class="info-item-1">为什么需要理解 GPIO 模式使用 STM32 时，CubeMX 或 HAL 库给 GPIO 提供了 8 种模式： 12345678GPIO_MODE_INPUT          输入浮空GPIO_MODE_INPUT_PULLUP   输入上拉GPIO_MODE_INPUT_PULLDOWN 输入下拉GPIO_MODE_ANALOG         模拟输入GPIO_MODE_OUTPUT_PP      推挽输出GPIO_MODE_OUTPUT_OD      开漏输出GPIO_MODE_AF_PP          复用推挽GPIO_MODE_AF_OD          复用开漏  选错模式轻则不工作，重则烧引脚。理解每种模式的内部电路，才能正确选型。 一、输出模式1.1 推挽输出（Push-Pull）123456789     VDD      │┌─── P-MOS ───┐  输出高电平：P-MOS 导通, N-MOS 截止 → VDD│             ││      ┌──────┤─── GPIO│      │      │└─── N-MOS ─...</div></div></div></a><a class="pagination-related" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-12</div><div class="info-item-2">STM32F103C8T6 HAL库 PWM 呼吸灯</div></div><div class="info-2"><div class="info-item-1">硬件需求   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   LED 5mm 发光二极管 1   电阻 220Ω（限流） 1   下载器 ST-Link V2 1   硬件连接12STM32F103C8T6              LED    PA0  ──── PWM ────  (220Ω) ────  LED(+) ──── GND  TIM2_CH1 复用 PA0 输出 PWM，占空比 0%→100%→0% 循环实现呼吸效果。 PWM 原理123456789101112131415PWM（Pulse Width Modulation）脉冲宽度调制：固定频率下，调节高电平占比（占空比）来控制平均输出电压。周期 T = 1/f，占空比 = t_on / T × 100%高电平 ┌────┐    ┌────┐  25%  → LED 微亮低电平 └────┴────┴────┘高电平 ┌──────┐  ┌──────┐  50%  → LED 半亮低电平 └──────┴──┴──────┘高电平 ┌────────┐┌────────┐ ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/resheep"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E5%8D%8F%E8%AE%AE%E6%A6%82%E8%A7%88"><span class="toc-number">1.</span> <span class="toc-text">三种协议概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81UART"><span class="toc-number">2.</span> <span class="toc-text">一、UART</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">2.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6"><span class="toc-number">2.2.</span> <span class="toc-text">异步机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STM32-HAL-%E9%85%8D%E7%BD%AE"><span class="toc-number">2.3.</span> <span class="toc-text">STM32 HAL 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%94%B6%E5%8F%91%E6%96%B9%E5%BC%8F"><span class="toc-number">2.4.</span> <span class="toc-text">三种收发方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">2.5.</span> <span class="toc-text">常用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81I2C"><span class="toc-number">3.</span> <span class="toc-text">二、I2C</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-number">3.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B5%B7%E5%A7%8B-%E5%81%9C%E6%AD%A2%E6%9D%A1%E4%BB%B6"><span class="toc-number">3.2.</span> <span class="toc-text">起始&#x2F;停止条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STM32-HAL-%E9%85%8D%E7%BD%AE-1"><span class="toc-number">3.3.</span> <span class="toc-text">STM32 HAL 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E6%93%8D%E4%BD%9C"><span class="toc-number">3.4.</span> <span class="toc-text">读写操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E8%AE%BE%E5%A4%87%E5%9C%B0%E5%9D%80"><span class="toc-number">3.5.</span> <span class="toc-text">常见设备地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">3.6.</span> <span class="toc-text">常见问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81SPI"><span class="toc-number">4.</span> <span class="toc-text">三、SPI</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-number">4.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#STM32-HAL-%E9%85%8D%E7%BD%AE-2"><span class="toc-number">4.2.</span> <span class="toc-text">STM32 HAL 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E5%86%99%E6%93%8D%E4%BD%9C-1"><span class="toc-number">4.3.</span> <span class="toc-text">读写操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%89%E7%A7%8D%E5%8D%8F%E8%AE%AE%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">5.</span> <span class="toc-text">四、三种协议怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E6%88%98%E5%AF%B9%E6%AF%94%EF%BC%88%E8%AF%BB%E5%8F%96%E4%B8%80%E4%B8%AA%E4%BC%A0%E6%84%9F%E5%99%A8%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">五、实战对比（读取一个传感器）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81CubeMX-%E9%85%8D%E7%BD%AE%E9%80%9F%E6%9F%A5"><span class="toc-number">7.</span> <span class="toc-text">六、CubeMX 配置速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%B0%83%E8%AF%95%E6%8A%80%E5%B7%A7"><span class="toc-number">8.</span> <span class="toc-text">七、调试技巧</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32F103C8T6 + MPU6050 姿态传感器项目实践"/></a><div class="content"><a class="title" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践">STM32F103C8T6 + MPU6050 姿态传感器项目实践</a><time datetime="2025-10-20T10:00:00.000Z" title="发表于 2025-10-20 18:00:00">2025-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/" title="STM32 通信协议详解"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32 通信协议详解"/></a><div class="content"><a class="title" href="/2025/10/12/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/" title="STM32 通信协议详解">STM32 通信协议详解</a><time datetime="2025-10-12T14:00:00.000Z" title="发表于 2025-10-12 22:00:00">2025-10-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32F103C8T6 HAL库 PWM 呼吸灯"/></a><div class="content"><a class="title" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯">STM32F103C8T6 HAL库 PWM 呼吸灯</a><time datetime="2025-10-12T12:00:00.000Z" title="发表于 2025-10-12 20:00:00">2025-10-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/" title="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解"/></a><div class="content"><a class="title" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/" title="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解">STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解</a><time datetime="2025-10-09T13:00:00.000Z" title="发表于 2025-10-09 21:00:00">2025-10-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script src="/js/per-page-bg.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
