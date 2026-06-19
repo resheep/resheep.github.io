@@ -1,3 +1,8 @@
+/* ========== 头像取消旋转 ========== */
+.avatar-img {
+  animation: none !important;
+}
+
 /* ========== 默认整页背景 ========== */
 #web_bg {
   background: url(/img/index-banner.jpg) center/cover no-repeat fixed;
