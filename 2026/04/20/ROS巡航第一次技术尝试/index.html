@@ -1,0 +1,1016 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>基于ROS巡航第一次技术尝试 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ABOT 竞赛机器人技术文档 工作空间: &#x2F;home&#x2F;abot&#x2F;U3SKU4机器人: 全向底盘 ABOT，RPLidar 激光雷达场地: 9×9 网格 40cm，3.6m×3.6m任务: 语音唤醒 → 4检测点VLM识别 → 任务点(31-51) → 终点   一、系统架构1234567891011121314151617181920212223麦克风(PyAudio)    │    ▼star">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于ROS巡航第一次技术尝试">
+<meta property="og:url" content="http://yujian.click/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="ABOT 竞赛机器人技术文档 工作空间: &#x2F;home&#x2F;abot&#x2F;U3SKU4机器人: 全向底盘 ABOT，RPLidar 激光雷达场地: 9×9 网格 40cm，3.6m×3.6m任务: 语音唤醒 → 4检测点VLM识别 → 任务点(31-51) → 终点   一、系统架构1234567891011121314151617181920212223麦克风(PyAudio)    │    ▼star">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg">
+<meta property="article:published_time" content="2026-04-20T14:08:52.000Z">
+<meta property="article:modified_time" content="2026-06-19T14:40:07.190Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="ROS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "基于ROS巡航第一次技术尝试",
+  "url": "http://yujian.click/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/",
+  "image": "https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg",
+  "datePublished": "2026-04-20T14:08:52.000Z",
+  "dateModified": "2026-06-19T14:40:07.190Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "http://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://yujian.click/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '基于ROS巡航第一次技术尝试',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">基于ROS巡航第一次技术尝试</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">基于ROS巡航第一次技术尝试</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-19T14:40:07.190Z" title="更新于 2026-06-19 22:40:07">2026-06-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="ABOT-竞赛机器人技术文档"><a href="#ABOT-竞赛机器人技术文档" class="headerlink" title="ABOT 竞赛机器人技术文档"></a>ABOT 竞赛机器人技术文档</h1><blockquote>
+<p>工作空间: <code>/home/abot/U3SKU4</code><br>机器人: 全向底盘 ABOT，RPLidar 激光雷达<br>场地: 9×9 网格 40cm，3.6m×3.6m<br>任务: 语音唤醒 → 4检测点VLM识别 → 任务点(31-51) → 终点</p>
+</blockquote>
+<hr>
+<h2 id="一、系统架构"><a href="#一、系统架构" class="headerlink" title="一、系统架构"></a>一、系统架构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">麦克风(PyAudio)</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">start.py (Snowboy唤醒词检测)</span><br><span class="line">    │  pub &quot;start&quot; → /start_mission</span><br><span class="line">    ▼</span><br><span class="line">main.py (主控节点)</span><br><span class="line">    │</span><br><span class="line">    ├─→ 检测点 [10,11,12,13]: move_base goto → VLM识别</span><br><span class="line">    ├─→ 任务点 [ID_MAP映射]: subprocess auto_single_point_test</span><br><span class="line">    └─→ 终点 [16]: move_base goto → end24</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">move_base (ROS导航栈)</span><br><span class="line">    ├─ global_planner (Dijkstra 5Hz)</span><br><span class="line">    ├─ local_planner (TEB 10Hz)</span><br><span class="line">    ├─ global_costmap (静态地图 + 激光)</span><br><span class="line">    └─ local_costmap (滑动窗口 2m×2m + 激光)</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">AMCL (自适应蒙特卡洛定位)</span><br><span class="line">    ├─ 120激光束匹配</span><br><span class="line">    └─ 500-2000粒子滤波</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、启动流程"><a href="#二、启动流程" class="headerlink" title="二、启动流程"></a>二、启动流程</h2><h3 id="U3SKU4-sh-—-10个gnome-terminal标签页"><a href="#U3SKU4-sh-—-10个gnome-terminal标签页" class="headerlink" title="U3SKU4.sh — 10个gnome-terminal标签页"></a>U3SKU4.sh — 10个gnome-terminal标签页</h3><table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>延迟</th>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>0s</td>
+<td>roscore</td>
+<td>ROS 主节点</td>
+</tr>
+<tr>
+<td>2</td>
+<td>3s</td>
+<td>robot_with_imu.launch</td>
+<td>底盘驱动 + IMU + 激光雷达</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4s</td>
+<td>navigation.launch</td>
+<td>地图服务 + AMCL + move_base</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4s</td>
+<td>usb_cam_with_calibration</td>
+<td>USB摄像头</td>
+</tr>
+<tr>
+<td>5</td>
+<td>4s</td>
+<td>ar_track_camera</td>
+<td>AR标签跟踪</td>
+</tr>
+<tr>
+<td>6</td>
+<td>4s</td>
+<td>vlm_node.launch</td>
+<td>视觉大模型(VLM)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>4s</td>
+<td>multi_goal.launch</td>
+<td><strong>主控节点 main.py</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>4s</td>
+<td>view_nav.launch</td>
+<td>RViz 可视化</td>
+</tr>
+<tr>
+<td>9</td>
+<td>4s</td>
+<td>TTS.py</td>
+<td>语音合成</td>
+</tr>
+<tr>
+<td>10</td>
+<td>4s</td>
+<td>GameStart.launch</td>
+<td>语音唤醒 start.py</td>
+</tr>
+</tbody></table>
+<h3 id="比赛模式-vs-调试模式"><a href="#比赛模式-vs-调试模式" class="headerlink" title="比赛模式 vs 调试模式"></a>比赛模式 vs 调试模式</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- multi_goal.launch --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;skip_voice_activation&quot;</span> <span class="attr">value</span>=<span class="string">&quot;false&quot;</span>/&gt;</span>  <span class="comment">&lt;!-- 比赛: false, 调试: true --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param</span> <span class="attr">name</span>=<span class="string">&quot;skip_voice_delay&quot;</span> <span class="attr">value</span>=<span class="string">&quot;4.0&quot;</span>/&gt;</span>          <span class="comment">&lt;!-- 调试: 启动后自动开始 --&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="三、任务流程"><a href="#三、任务流程" class="headerlink" title="三、任务流程"></a>三、任务流程</h2><h3 id="3-1-完整流程"><a href="#3-1-完整流程" class="headerlink" title="3.1 完整流程"></a>3.1 完整流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">语音唤醒 &quot;Hey Start&quot;</span><br><span class="line">    │</span><br><span class="line">    ▼</span><br><span class="line">start_mission_callback:</span><br><span class="line">    │</span><br><span class="line">    ├─ 检测点 [10,11,12,13] 逐个:</span><br><span class="line">    │    ┌─ move_base goto(goals[point])</span><br><span class="line">    │    ├─ VLM识别: set /detect=1 → call service → 8s超时</span><br><span class="line">    │    ├─ ID_MAP[task_id] → goal_idx</span><br><span class="line">    │    └─ task_list.append((task_id, goal_idx))</span><br><span class="line">    │</span><br><span class="line">    ├─ 任务点:</span><br><span class="line">    │    for task_id, goal_idx in task_list:</span><br><span class="line">    │      subprocess auto_single_point_test</span><br><span class="line">    │        → 精准停靠 + 激光安全 + 多入口重试</span><br><span class="line">    │</span><br><span class="line">    ├─ 终点:</span><br><span class="line">    │    _goto_if_valid(16, &quot;终点&quot;)</span><br><span class="line">    │    end24() 后退+右移</span><br><span class="line">    │</span><br><span class="line">    └─ 汇总报告</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-ID-MAP-映射"><a href="#3-2-ID-MAP-映射" class="headerlink" title="3.2 ID_MAP 映射"></a>3.2 ID_MAP 映射</h3><table>
+<thead>
+<tr>
+<th>VLM返回值</th>
+<th>goals索引</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31,32,33</td>
+<td>1,2,3</td>
+<td>第一组任务点</td>
+</tr>
+<tr>
+<td>40,41,42</td>
+<td>4,5,6</td>
+<td>第二组任务点</td>
+</tr>
+<tr>
+<td>49,50,51</td>
+<td>7,8,9</td>
+<td>第三组任务点</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-检测点与终点坐标"><a href="#3-3-检测点与终点坐标" class="headerlink" title="3.3 检测点与终点坐标"></a>3.3 检测点与终点坐标</h3><table>
+<thead>
+<tr>
+<th>索引</th>
+<th>X</th>
+<th>Y</th>
+<th>Yaw°</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10</td>
+<td>0.15</td>
+<td>1.65</td>
+<td>185</td>
+<td>检测点1</td>
+</tr>
+<tr>
+<td>11</td>
+<td>1.52</td>
+<td>3.05</td>
+<td>90</td>
+<td>检测点2</td>
+</tr>
+<tr>
+<td>12</td>
+<td>2.85</td>
+<td>1.60</td>
+<td>0</td>
+<td>检测点3</td>
+</tr>
+<tr>
+<td>13</td>
+<td>1.60</td>
+<td>0.20</td>
+<td>-90</td>
+<td>检测点4</td>
+</tr>
+<tr>
+<td>16</td>
+<td>0.20</td>
+<td>3.13</td>
+<td>180</td>
+<td>终点</td>
+</tr>
+</tbody></table>
+<h3 id="3-4-auto-single-point-test-停车流程"><a href="#3-4-auto-single-point-test-停车流程" class="headerlink" title="3.4 auto_single_point_test 停车流程"></a>3.4 auto_single_point_test 停车流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">auto_single_point_test(x, y, yaw):</span><br><span class="line">  ① try_direct_center       move_base直达(2s超时)</span><br><span class="line">  ② generate_entries        生成4方向入口(距目标28cm)</span><br><span class="line">  ③ sort_entries_by_obstacle  激光评分排序(最多3入口)</span><br><span class="line">  ④ for entry in entries:</span><br><span class="line">       goto_entry            move_base到入口(5s超时)</span><br><span class="line">       align_to_yaw          旋转对准(3s超时)</span><br><span class="line">       enter_to_target_box   P控制分段降速驶入(6s超时)</span><br><span class="line">          ├─ apply_laser_safety  前方&lt;10cm急停</span><br><span class="line">          ├─ is_obstacle_parking_good  挡板挡住够近→接受</span><br><span class="line">          └─ backoff_from_obstacle  脱困重试</span><br><span class="line">  ⑤ exit_from_entry         退出18cm(给下个任务腾空间)</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、参数配置"><a href="#四、参数配置" class="headerlink" title="四、参数配置"></a>四、参数配置</h2><h3 id="4-1-TEB-局部规划器"><a href="#4-1-TEB-局部规划器" class="headerlink" title="4.1 TEB 局部规划器"></a>4.1 TEB 局部规划器</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>max_vel_x</code></td>
+<td>0.35</td>
+<td>前进极速 m&#x2F;s</td>
+</tr>
+<tr>
+<td><code>max_vel_x_backwards</code></td>
+<td>0.15</td>
+<td>后退极速</td>
+</tr>
+<tr>
+<td><code>max_vel_y</code></td>
+<td>0.20</td>
+<td>横移极速(全向)</td>
+</tr>
+<tr>
+<td><code>max_vel_theta</code></td>
+<td>0.60</td>
+<td>旋转极速 rad&#x2F;s</td>
+</tr>
+<tr>
+<td><code>acc_lim_x</code></td>
+<td>0.50</td>
+<td>纵向加速度</td>
+</tr>
+<tr>
+<td><code>acc_lim_y</code></td>
+<td>0.40</td>
+<td>横向加速度</td>
+</tr>
+<tr>
+<td><code>acc_lim_theta</code></td>
+<td>0.50</td>
+<td>角加速度</td>
+</tr>
+<tr>
+<td><code>min_obstacle_dist</code></td>
+<td>0.08</td>
+<td>硬障碍距离(不可逾越)</td>
+</tr>
+<tr>
+<td><code>inflation_dist</code></td>
+<td>0.10</td>
+<td>软障碍距离(减速区)</td>
+</tr>
+<tr>
+<td><code>weight_obstacle</code></td>
+<td>50</td>
+<td>障碍物权重</td>
+</tr>
+<tr>
+<td><code>weight_optimaltime</code></td>
+<td>2.5</td>
+<td>速度权重</td>
+</tr>
+<tr>
+<td><code>weight_viapoint</code></td>
+<td>0.4</td>
+<td>路径跟随强度(0&#x3D;自由绕障)</td>
+</tr>
+<tr>
+<td><code>oscillation_v_eps</code></td>
+<td>0.06</td>
+<td>线速度震荡阈值</td>
+</tr>
+<tr>
+<td><code>oscillation_omega_eps</code></td>
+<td>0.12</td>
+<td>角速度震荡阈值</td>
+</tr>
+<tr>
+<td><code>dt_ref</code></td>
+<td>0.30</td>
+<td>轨迹时间步长</td>
+</tr>
+<tr>
+<td><code>penalty_epsilon</code></td>
+<td>0.03</td>
+<td>优化收敛阈值</td>
+</tr>
+<tr>
+<td><code>feasibility_check_no_poses</code></td>
+<td>3</td>
+<td>可行性检查帧数</td>
+</tr>
+<tr>
+<td><code>max_global_plan_lookahead_dist</code></td>
+<td>1.5</td>
+<td>前视距离 m</td>
+</tr>
+<tr>
+<td><code>xy_goal_tolerance</code></td>
+<td>0.10</td>
+<td>位置到达容差 m</td>
+</tr>
+<tr>
+<td><code>yaw_goal_tolerance</code></td>
+<td>0.25</td>
+<td>角度到达容差 rad</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-代价地图"><a href="#4-2-代价地图" class="headerlink" title="4.2 代价地图"></a>4.2 代价地图</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>inflation_radius</code></td>
+<td>0.08</td>
+<td>障碍物膨胀半径 m</td>
+</tr>
+<tr>
+<td><code>cost_scaling_factor</code></td>
+<td>5.0</td>
+<td>代价指数衰减速度</td>
+</tr>
+<tr>
+<td><code>obstacle_range</code></td>
+<td>4.0</td>
+<td>障碍物标记范围 m</td>
+</tr>
+<tr>
+<td><code>raytrace_range</code></td>
+<td>4.5</td>
+<td>障碍物清除范围 m</td>
+</tr>
+<tr>
+<td><code>footprint</code></td>
+<td>[[0.205,0.18],…]</td>
+<td>机器人外轮廓 40×36cm</td>
+</tr>
+</tbody></table>
+<h3 id="4-3-move-base"><a href="#4-3-move-base" class="headerlink" title="4.3 move_base"></a>4.3 move_base</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>planner_frequency</code></td>
+<td>5.0</td>
+<td>全局规划频率 Hz</td>
+</tr>
+<tr>
+<td><code>controller_frequency</code></td>
+<td>10.0</td>
+<td>局部控制频率 Hz</td>
+</tr>
+<tr>
+<td><code>oscillation_distance</code></td>
+<td>0.15</td>
+<td>震荡判定范围 m</td>
+</tr>
+<tr>
+<td><code>oscillation_timeout</code></td>
+<td>8.0</td>
+<td>震荡超时 s</td>
+</tr>
+<tr>
+<td><code>controller_patience</code></td>
+<td>10.0</td>
+<td>控制器忍耐 s</td>
+</tr>
+<tr>
+<td>recovery</td>
+<td>clear_costmap only</td>
+<td>不旋转恢复(防丢定位)</td>
+</tr>
+</tbody></table>
+<h3 id="4-4-AMCL-定位"><a href="#4-4-AMCL-定位" class="headerlink" title="4.4 AMCL 定位"></a>4.4 AMCL 定位</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>laser_max_beams</code></td>
+<td>120</td>
+<td>激光匹配点数</td>
+</tr>
+<tr>
+<td><code>update_min_d</code></td>
+<td>0.05</td>
+<td>平移触发更新 m</td>
+</tr>
+<tr>
+<td><code>update_min_a</code></td>
+<td>0.10</td>
+<td>旋转触发更新 rad</td>
+</tr>
+<tr>
+<td><code>odom_model_type</code></td>
+<td>omni</td>
+<td>全向里程计模型</td>
+</tr>
+<tr>
+<td><code>odom_alpha3</code></td>
+<td>0.25</td>
+<td>横移噪声系数</td>
+</tr>
+<tr>
+<td><code>min_particles</code></td>
+<td>500</td>
+<td>最少粒子数</td>
+</tr>
+<tr>
+<td><code>max_particles</code></td>
+<td>2000</td>
+<td>最多粒子数</td>
+</tr>
+<tr>
+<td><code>laser_model_type</code></td>
+<td>likelihood_field</td>
+<td>似然场匹配</td>
+</tr>
+</tbody></table>
+<h3 id="4-5-auto-single-point-test-停车"><a href="#4-5-auto-single-point-test-停车" class="headerlink" title="4.5 auto_single_point_test 停车"></a>4.5 auto_single_point_test 停车</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>entry_offset</code></td>
+<td>0.28</td>
+<td>入口距目标 m</td>
+</tr>
+<tr>
+<td><code>front_stop_dist</code></td>
+<td>0.10</td>
+<td>前方急停 m</td>
+</tr>
+<tr>
+<td><code>side_stop_dist</code></td>
+<td>0.10</td>
+<td>侧方急停 m</td>
+</tr>
+<tr>
+<td><code>any_stop_dist</code></td>
+<td>0.06</td>
+<td>全向急停 m</td>
+</tr>
+<tr>
+<td><code>enter_timeout</code></td>
+<td>6.0</td>
+<td>入框超时 s</td>
+</tr>
+<tr>
+<td><code>nav_timeout</code></td>
+<td>5.0</td>
+<td>导航超时 s</td>
+</tr>
+<tr>
+<td><code>align_timeout</code></td>
+<td>3.0</td>
+<td>对齐超时 s</td>
+</tr>
+<tr>
+<td><code>direct_entry_timeout</code></td>
+<td>4.0</td>
+<td>直驱超时 s</td>
+</tr>
+<tr>
+<td><code>max_enter_v</code></td>
+<td>0.15</td>
+<td>入框最大速度</td>
+</tr>
+<tr>
+<td><code>exit_distance</code></td>
+<td>0.18</td>
+<td>退出距离 m</td>
+</tr>
+<tr>
+<td><code>exit_speed</code></td>
+<td>0.12</td>
+<td>退出速度 m&#x2F;s</td>
+</tr>
+<tr>
+<td><code>obstacle_park_accept_dist</code></td>
+<td>0.12</td>
+<td>障碍泊车接受距离 m</td>
+</tr>
+</tbody></table>
+<h2 id="五、安全机制"><a href="#五、安全机制" class="headerlink" title="五、安全机制"></a>五、安全机制</h2><h3 id="5-1-正常导航阶段"><a href="#5-1-正常导航阶段" class="headerlink" title="5.1 正常导航阶段"></a>5.1 正常导航阶段</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">TEB 硬约束: min_obstacle_dist = 0.08m (轨迹不可逾越)</span><br><span class="line">TEB 软约束: inflation_dist = 0.10m (减速区)</span><br><span class="line">costmap: inflation_radius = 0.08m (障碍物膨胀)</span><br><span class="line">清扫恢复: clear_costmap (不旋转)</span><br><span class="line">震荡恢复: v_eps=0.06, omega_eps=0.12</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-auto-single-point-test-停车阶段"><a href="#5-2-auto-single-point-test-停车阶段" class="headerlink" title="5.2 auto_single_point_test 停车阶段"></a>5.2 auto_single_point_test 停车阶段</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">关闭三层障碍: obstacle_layer + inflation_layer + static_layer</span><br><span class="line">实时激光: 20Hz扫描 → 前方&lt;10cm急停, 任意&lt;6cm全停</span><br><span class="line">多入口: 4方向评分 → 最多3个重试</span><br><span class="line">障碍泊车: L型挡板 → 够近接受</span><br><span class="line">脱困: 后退0.7s → 重试</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-紧急制动参数"><a href="#5-3-紧急制动参数" class="headerlink" title="5.3 紧急制动参数"></a>5.3 紧急制动参数</h3><table>
+<thead>
+<tr>
+<th>层</th>
+<th>触发距离</th>
+<th>动作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>auto 全向</td>
+<td>&lt;6cm</td>
+<td>全停</td>
+</tr>
+<tr>
+<td>auto 前方</td>
+<td>&lt;10cm</td>
+<td>停前进</td>
+</tr>
+<tr>
+<td>auto 侧方</td>
+<td>&lt;10cm</td>
+<td>停横移</td>
+</tr>
+<tr>
+<td>TEB 硬约束</td>
+<td>&lt;8cm</td>
+<td>轨迹拒绝</td>
+</tr>
+<tr>
+<td>oscillation</td>
+<td>&gt;6cm&#x2F;s波动</td>
+<td>5s恢复</td>
+</tr>
+</tbody></table>
+<h2 id="六、里程计"><a href="#六、里程计" class="headerlink" title="六、里程计"></a>六、里程计</h2><h3 id="6-1-硬件架构"><a href="#6-1-硬件架构" class="headerlink" title="6.1 硬件架构"></a>6.1 硬件架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">轮式编码器 (4×麦克纳姆轮)</span><br><span class="line">    │ 每轮脉冲计数 → 合成 vx, vy, vz, vth</span><br><span class="line">    ▼</span><br><span class="line">/wheel_odom (abot_driver 发布)</span><br><span class="line">    │</span><br><span class="line">    ├─→ robot_pose_ekf (EKF融合 200Hz)</span><br><span class="line">    │     输入: /wheel_odom (vx) + /imu/data_raw (陀螺仪z轴)</span><br><span class="line">    │     输出: /odom (fused odometry TF)</span><br><span class="line">    │</span><br><span class="line">    └─→ TEB (直接读 /wheel_odom 做速度约束)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-EKF-融合策略"><a href="#6-2-EKF-融合策略" class="headerlink" title="6.2 EKF 融合策略"></a>6.2 EKF 融合策略</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">麦轮横向速度不可靠 → 只融合 vx（前进速度）</span><br><span class="line">陀螺仪偏航角速度可靠 → 融合 z 轴角速度，替代编码器差分</span><br><span class="line"></span><br><span class="line">过程噪声:</span><br><span class="line">  vy: 0.1  (最大 — 无侧向速度观测)</span><br><span class="line">  yaw: 0.01 (最小 — 信任陀螺仪)</span><br><span class="line">  vx: 0.05 (中等)</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-AMCL-校正循环"><a href="#6-3-AMCL-校正循环" class="headerlink" title="6.3 AMCL 校正循环"></a>6.3 AMCL 校正循环</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/odom → 粒子预测 → 120条激光束匹配地图(似然场) → 粒子重采样 → /tf(map→odom)</span><br><span class="line">                                                      ↓</span><br><span class="line">                           每 5cm 平移或 5.7° 旋转触发一次更新</span><br><span class="line">                           min_particles=500, max=2000</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-横移偏差处理"><a href="#6-4-横移偏差处理" class="headerlink" title="6.4 横移偏差处理"></a>6.4 横移偏差处理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">odom_alpha3=0.25: 横移10cm → 粒子扩散±2.5cm → 激光校正后修正</span><br><span class="line">                  比原始0.15更容忍横移打滑，全向底盘必要</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、避障逻辑"><a href="#七、避障逻辑" class="headerlink" title="七、避障逻辑"></a>七、避障逻辑</h2><h3 id="7-1-三层避障架构"><a href="#7-1-三层避障架构" class="headerlink" title="7.1 三层避障架构"></a>7.1 三层避障架构</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Layer 1: global_costmap</span><br><span class="line">  ├─ static_layer: 预建 .pgm 地图</span><br><span class="line">  ├─ obstacle_layer: /scan_filtered 激光数据</span><br><span class="line">  └─ inflation_layer: 障碍物周围 8cm 膨胀</span><br><span class="line">  → 180×180格, 2cm分辨率, 全局规划用</span><br><span class="line"></span><br><span class="line">Layer 2: local_costmap</span><br><span class="line">  ├─ obstacle_layer: /scan_filtered 实时激光</span><br><span class="line">  └─ inflation_layer: 障碍物周围 8cm 膨胀</span><br><span class="line">  → 100×100格, 2m×2m滑动窗口, TEB用</span><br><span class="line"></span><br><span class="line">Layer 3: TEB 优化器</span><br><span class="line">  ├─ min_obstacle_dist=0.08m (硬约束, 轨迹不可逾越)</span><br><span class="line">  ├─ inflation_dist=0.10m (软约束, 产生减速代价)</span><br><span class="line">  └─ weight_obstacle=50 (最高权重)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-TEB-避障决策-每100ms一帧"><a href="#7-2-TEB-避障决策-每100ms一帧" class="headerlink" title="7.2 TEB 避障决策 (每100ms一帧)"></a>7.2 TEB 避障决策 (每100ms一帧)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">① 沿全局路径前1.5m采样候选轨迹序列</span><br><span class="line">② 从costmap采样25个障碍物位姿</span><br><span class="line">③ 计算每轨迹点离障碍物的距离:</span><br><span class="line">     &lt;0.08m → 轨迹直接拒绝</span><br><span class="line">     0.08~0.10m → 产生高代价</span><br><span class="line">     &gt;0.10m → 无代价</span><br><span class="line">④ 代价函数: J = 50×障碍 + 2.5×时间 + 0.4×跟随 + 平滑项</span><br><span class="line">⑤ 选代价最低轨迹 → 发布第一帧速度指令</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-绕挡板时间线"><a href="#7-3-绕挡板时间线" class="headerlink" title="7.3 绕挡板时间线"></a>7.3 绕挡板时间线</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0.0s: 激光未检测到挡板 → 全局路径直线穿板</span><br><span class="line">0.1s: 激光看到挡板(4m范围) → local/global costmap 同时标记</span><br><span class="line">0.2s: planner_frequency=5Hz → 全局规划重算绕行路线</span><br><span class="line">0.3s: TEB 收到新路径 → weight_viapoint=0.4 自由偏离旧路线</span><br><span class="line">      → 沿绕行路线前进</span><br><span class="line">总延迟: ~0.3s → 机器人位移 &lt;10cm</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-4-窄缝处理"><a href="#7-4-窄缝处理" class="headerlink" title="7.4 窄缝处理"></a>7.4 窄缝处理</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">正常行驶: inflation=8cm → 需52cm有效宽 → 40cm窄缝被标记为不可过 → 绕行</span><br><span class="line">停车阶段: 关三层障碍层 → 无视窄缝 → 激光安全兜底(前方&lt;10cm急停)</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-避障参数权衡"><a href="#7-5-避障参数权衡" class="headerlink" title="7.5 避障参数权衡"></a>7.5 避障参数权衡</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>大→小</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>weight_obstacle</code></td>
+<td>80→50</td>
+<td>靠障碍更近, 硬约束保护</td>
+</tr>
+<tr>
+<td><code>weight_viapoint</code></td>
+<td>1.0→0.4</td>
+<td>自由绕板, 不穿板</td>
+</tr>
+<tr>
+<td><code>inflation_radius</code></td>
+<td>0.10→0.08</td>
+<td>窄缝标记更多, 绕宽路</td>
+</tr>
+<tr>
+<td><code>min_obstacle_dist</code></td>
+<td>0.10→0.08</td>
+<td>更近才硬拒绝</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="八、路径规划"><a href="#八、路径规划" class="headerlink" title="八、路径规划"></a>八、路径规划</h2><h3 id="8-1-全局规划-Dijkstra-5Hz"><a href="#8-1-全局规划-Dijkstra-5Hz" class="headerlink" title="8.1 全局规划 (Dijkstra, 5Hz)"></a>8.1 全局规划 (Dijkstra, 5Hz)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">输入: global_costmap (180×180, 2cm)</span><br><span class="line">算法: Dijkstra 最短路径</span><br><span class="line"></span><br><span class="line">allow_unknown: false  → 不穿未知区域</span><br><span class="line">lethal_cost: 253      → 代价&gt;253 不可通</span><br><span class="line">cost_factor: 3.0      → 代价倍数</span><br><span class="line"></span><br><span class="line">路线特征: 沿最低代价走 → 自然避开障碍物和膨胀区</span><br><span class="line">          窄缝被膨胀堵 → 自动选宽路</span><br><span class="line">          每次0.2s重规划 → 临时挡板快速响应</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-2-局部规划-TEB-10Hz"><a href="#8-2-局部规划-TEB-10Hz" class="headerlink" title="8.2 局部规划 (TEB, 10Hz)"></a>8.2 局部规划 (TEB, 10Hz)</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">输入: 全局路径 + local_costmap (100×100, 2m×2m)</span><br><span class="line">算法: Timed Elastic Band (时间弹性带)</span><br><span class="line"></span><br><span class="line">① 沿全局路径采样5-10个候选轨迹点</span><br><span class="line">② 每个点: 位置(x,y) + 时间间隔(dt)</span><br><span class="line">③ 非线性优化: 最小化通过时间 + 最大化障碍距离</span><br><span class="line">④ 约束: vx&lt;0.35, vy&lt;0.20, vth&lt;0.60, ax&lt;0.50</span><br><span class="line">⑤ 输出: 第一帧 /cmd_vel</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-3-路径跟随自由度"><a href="#8-3-路径跟随自由度" class="headerlink" title="8.3 路径跟随自由度"></a>8.3 路径跟随自由度</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">weight_viapoint=1.0: 紧贴全局路径 → 穿板→震荡→ABORT</span><br><span class="line">weight_viapoint=0.4: 宽松跟随 → 绕板自由 → 开阔区±4cm微摆</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-规划失效兜底"><a href="#8-4-规划失效兜底" class="headerlink" title="8.4 规划失效兜底"></a>8.4 规划失效兜底</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">全局无解 (5s) → goto返回False → 检测点重试1次 → 跳过</span><br><span class="line">局部无解 → shrink_horizon → oscillation_recovery(5s)</span><br><span class="line">         → controller_patience(10s) → clear_costmap → ABORT</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="九、主程序关键机制"><a href="#九、主程序关键机制" class="headerlink" title="九、主程序关键机制"></a>九、主程序关键机制</h2><h3 id="9-1-服务超时"><a href="#9-1-服务超时" class="headerlink" title="9.1 服务超时"></a>9.1 服务超时</h3><table>
+<thead>
+<tr>
+<th>服务</th>
+<th>超时</th>
+<th>失败处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VLM连接</td>
+<td>15s</td>
+<td>跳过识别，返回”无”</td>
+</tr>
+<tr>
+<td>TTS连接</td>
+<td>15s</td>
+<td>静默运行</td>
+</tr>
+<tr>
+<td>VLM调用</td>
+<td>8s</td>
+<td>跳过本检测点</td>
+</tr>
+<tr>
+<td>任务点停车</td>
+<td>20s</td>
+<td>kill进程，打日志继续</td>
+</tr>
+<tr>
+<td>导航move_base</td>
+<td>45s</td>
+<td>返回False，重试或跳过</td>
+</tr>
+</tbody></table>
+<h3 id="9-2-防重复启动"><a href="#9-2-防重复启动" class="headerlink" title="9.2 防重复启动"></a>9.2 防重复启动</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>._running = <span class="literal">True</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="comment"># 完整任务流程</span></span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="variable language_">self</span>._running = <span class="literal">False</span>  <span class="comment"># 异常也保证恢复</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-检测点重试"><a href="#9-3-检测点重试" class="headerlink" title="9.3 检测点重试"></a>9.3 检测点重试</h3><p>move_base 失败 → 等1s → 重试1次 → 仍失败 → 跳过</p>
+<h2 id="十、文件清单"><a href="#十、文件清单" class="headerlink" title="十、文件清单"></a>十、文件清单</h2><h3 id="核心程序"><a href="#核心程序" class="headerlink" title="核心程序"></a>核心程序</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>行数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scripts/main.py</code></td>
+<td>~340</td>
+<td>主控节点</td>
+</tr>
+<tr>
+<td><code>scripts/auto_single_point_test.py</code></td>
+<td>1849</td>
+<td>精准停靠节点</td>
+</tr>
+<tr>
+<td><code>scripts/start.py</code></td>
+<td>73</td>
+<td>语音唤醒节点</td>
+</tr>
+<tr>
+<td><code>scripts/decoder.py</code></td>
+<td>283</td>
+<td>Snowboy热词检测器</td>
+</tr>
+<tr>
+<td><code>scripts/detect.py</code></td>
+<td>194</td>
+<td>Snowboy SWIG封装</td>
+</tr>
+</tbody></table>
+<h3 id="参数文件"><a href="#参数文件" class="headerlink" title="参数文件"></a>参数文件</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>params/carto/teb_local_planner_params.yaml</code></td>
+<td>TEB局部规划</td>
+</tr>
+<tr>
+<td><code>params/carto/costmap_common_params.yaml</code></td>
+<td>代价地图共通</td>
+</tr>
+<tr>
+<td><code>params/carto/move_base_params.yaml</code></td>
+<td>move_base控制</td>
+</tr>
+<tr>
+<td><code>params/carto/global_costmap_params.yaml</code></td>
+<td>全局代价地图</td>
+</tr>
+<tr>
+<td><code>params/carto/local_costmap_params.yaml</code></td>
+<td>局部代价地图</td>
+</tr>
+<tr>
+<td><code>params/carto/global_planner_params.yaml</code></td>
+<td>全局规划器</td>
+</tr>
+<tr>
+<td><code>params/carto/dwa_local_planner_params.yaml</code></td>
+<td>DWA备用规划器</td>
+</tr>
+</tbody></table>
+<h3 id="启动文件"><a href="#启动文件" class="headerlink" title="启动文件"></a>启动文件</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>launch/multi_goal.launch</code></td>
+<td>主控节点启动配置</td>
+</tr>
+<tr>
+<td><code>launch/navigation.launch</code></td>
+<td>导航栈启动</td>
+</tr>
+<tr>
+<td><code>launch/include/move_base.launch.xml</code></td>
+<td>move_base配置</td>
+</tr>
+<tr>
+<td><code>launch/include/amcl.launch.xml</code></td>
+<td>AMCL定位配置</td>
+</tr>
+<tr>
+<td><code>launch/include/gmapping.launch.xml</code></td>
+<td>建图配置</td>
+</tr>
+<tr>
+<td><code>U3SKU4.sh</code></td>
+<td>一键启动脚本</td>
+</tr>
+<tr>
+<td><code>mapping.sh</code></td>
+<td>建图脚本</td>
+</tr>
+<tr>
+<td><code>save_map.sh</code></td>
+<td>保存地图脚本</td>
+</tr>
+</tbody></table>
+<h2 id="十一、调试工具"><a href="#十一、调试工具" class="headerlink" title="十一、调试工具"></a>十一、调试工具</h2><h3 id="11-1-快速诊断"><a href="#11-1-快速诊断" class="headerlink" title="11.1 快速诊断"></a>11.1 快速诊断</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rosnode list                             <span class="comment"># 节点状态</span></span><br><span class="line">rosparam get /move_base/TebLocalPlannerROS  <span class="comment"># TEB参数</span></span><br><span class="line">rostopic <span class="built_in">echo</span> /cmd_vel -n5               <span class="comment"># 速度指令</span></span><br><span class="line">rostopic <span class="built_in">echo</span> /amcl_pose -n1             <span class="comment"># 定位位姿</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="11-2-常见错误"><a href="#11-2-常见错误" class="headerlink" title="11.2 常见错误"></a>11.2 常见错误</h3><table>
+<thead>
+<tr>
+<th>错误</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>未找到目标参数 goalListYaw</code></td>
+<td>launch参数缺失</td>
+<td>检查multi_goal.launch</td>
+</tr>
+<tr>
+<td><code>oscillating...ABORT</code></td>
+<td>障碍挡住目标</td>
+<td>调整坐标或绕行参数</td>
+</tr>
+<tr>
+<td><code>VLM检测超时10s</code></td>
+<td>API响应慢</td>
+<td>检查摄像头+API</td>
+</tr>
+<tr>
+<td><code>任务点 超时20s</code></td>
+<td>auto节点卡住</td>
+<td>检查目标坐标可达性</td>
+</tr>
+<tr>
+<td><code>索引越界</code></td>
+<td>goals数组不够长</td>
+<td>检查launch坐标数量</td>
+</tr>
+</tbody></table>
+<h3 id="11-3-现场调参指南"><a href="#11-3-现场调参指南" class="headerlink" title="11.3 现场调参指南"></a>11.3 现场调参指南</h3><p>详见 <code>DEBUG_GUIDE.md</code>，包含12种症状的详细诊断和调整步骤。</p>
+<h3 id="11-4-建图指南"><a href="#11-4-建图指南" class="headerlink" title="11.4 建图指南"></a>11.4 建图指南</h3><p>详见 <code>GRID_POINTS.md</code>，包含9×9网格坐标、建图走法、质量要点。</p>
+<h2 id="十二、版本历史"><a href="#十二、版本历史" class="headerlink" title="十二、版本历史"></a>十二、版本历史</h2><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>主要修改</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基础修复</td>
+<td>TTS服务类型、参数命名、服务降级、边界检查</td>
+</tr>
+<tr>
+<td>避障优化</td>
+<td>速度提升、权重平衡、震荡放宽、绕行自由</td>
+</tr>
+<tr>
+<td>定位强化</td>
+<td>AMCL光束增加、更新频率提升、噪声模型调整</td>
+</tr>
+<tr>
+<td>停车系统</td>
+<td>auto_single_point_test 集成、超时收紧、激光安全收紧</td>
+</tr>
+<tr>
+<td>主控逻辑</td>
+<td>重入锁、VLM超时、检测点重试、汇总报告</td>
+</tr>
+<tr>
+<td>建图</td>
+<td>gmapping参数优化</td>
+</tr>
+<tr>
+<td>文档</td>
+<td>DEBUG_GUIDE + GRID_POINTS + TECHNICAL_DOC</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://yujian.click/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/">http://yujian.click/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ROS/">ROS</a></div><div class="post-share"><div class="social-share" data-image="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width no-desc" href="/2026/06/19/test/" title="test"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">test</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ABOT-%E7%AB%9E%E8%B5%9B%E6%9C%BA%E5%99%A8%E4%BA%BA%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3"><span class="toc-number">1.</span> <span class="toc-text">ABOT 竞赛机器人技术文档</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">一、系统架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">二、启动流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#U3SKU4-sh-%E2%80%94-10%E4%B8%AAgnome-terminal%E6%A0%87%E7%AD%BE%E9%A1%B5"><span class="toc-number">1.2.1.</span> <span class="toc-text">U3SKU4.sh — 10个gnome-terminal标签页</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%94%E8%B5%9B%E6%A8%A1%E5%BC%8F-vs-%E8%B0%83%E8%AF%95%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.2.2.</span> <span class="toc-text">比赛模式 vs 调试模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BB%BB%E5%8A%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.</span> <span class="toc-text">三、任务流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-ID-MAP-%E6%98%A0%E5%B0%84"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 ID_MAP 映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%A3%80%E6%B5%8B%E7%82%B9%E4%B8%8E%E7%BB%88%E7%82%B9%E5%9D%90%E6%A0%87"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 检测点与终点坐标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-auto-single-point-test-%E5%81%9C%E8%BD%A6%E6%B5%81%E7%A8%8B"><span class="toc-number">1.3.4.</span> <span class="toc-text">3.4 auto_single_point_test 停车流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">四、参数配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-TEB-%E5%B1%80%E9%83%A8%E8%A7%84%E5%88%92%E5%99%A8"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 TEB 局部规划器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%BB%A3%E4%BB%B7%E5%9C%B0%E5%9B%BE"><span class="toc-number">1.4.2.</span> <span class="toc-text">4.2 代价地图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-move-base"><span class="toc-number">1.4.3.</span> <span class="toc-text">4.3 move_base</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-AMCL-%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.4.4.</span> <span class="toc-text">4.4 AMCL 定位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-auto-single-point-test-%E5%81%9C%E8%BD%A6"><span class="toc-number">1.4.5.</span> <span class="toc-text">4.5 auto_single_point_test 停车</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%89%E5%85%A8%E6%9C%BA%E5%88%B6"><span class="toc-number">1.5.</span> <span class="toc-text">五、安全机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%AD%A3%E5%B8%B8%E5%AF%BC%E8%88%AA%E9%98%B6%E6%AE%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">5.1 正常导航阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-auto-single-point-test-%E5%81%9C%E8%BD%A6%E9%98%B6%E6%AE%B5"><span class="toc-number">1.5.2.</span> <span class="toc-text">5.2 auto_single_point_test 停车阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%B4%A7%E6%80%A5%E5%88%B6%E5%8A%A8%E5%8F%82%E6%95%B0"><span class="toc-number">1.5.3.</span> <span class="toc-text">5.3 紧急制动参数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%87%8C%E7%A8%8B%E8%AE%A1"><span class="toc-number">1.6.</span> <span class="toc-text">六、里程计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%A1%AC%E4%BB%B6%E6%9E%B6%E6%9E%84"><span class="toc-number">1.6.1.</span> <span class="toc-text">6.1 硬件架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-EKF-%E8%9E%8D%E5%90%88%E7%AD%96%E7%95%A5"><span class="toc-number">1.6.2.</span> <span class="toc-text">6.2 EKF 融合策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-AMCL-%E6%A0%A1%E6%AD%A3%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.6.3.</span> <span class="toc-text">6.3 AMCL 校正循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%A8%AA%E7%A7%BB%E5%81%8F%E5%B7%AE%E5%A4%84%E7%90%86"><span class="toc-number">1.6.4.</span> <span class="toc-text">6.4 横移偏差处理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%81%BF%E9%9A%9C%E9%80%BB%E8%BE%91"><span class="toc-number">1.7.</span> <span class="toc-text">七、避障逻辑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%B8%89%E5%B1%82%E9%81%BF%E9%9A%9C%E6%9E%B6%E6%9E%84"><span class="toc-number">1.7.1.</span> <span class="toc-text">7.1 三层避障架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-TEB-%E9%81%BF%E9%9A%9C%E5%86%B3%E7%AD%96-%E6%AF%8F100ms%E4%B8%80%E5%B8%A7"><span class="toc-number">1.7.2.</span> <span class="toc-text">7.2 TEB 避障决策 (每100ms一帧)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E7%BB%95%E6%8C%A1%E6%9D%BF%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="toc-number">1.7.3.</span> <span class="toc-text">7.3 绕挡板时间线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E7%AA%84%E7%BC%9D%E5%A4%84%E7%90%86"><span class="toc-number">1.7.4.</span> <span class="toc-text">7.4 窄缝处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E9%81%BF%E9%9A%9C%E5%8F%82%E6%95%B0%E6%9D%83%E8%A1%A1"><span class="toc-number">1.7.5.</span> <span class="toc-text">7.5 避障参数权衡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92"><span class="toc-number">1.8.</span> <span class="toc-text">八、路径规划</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E5%85%A8%E5%B1%80%E8%A7%84%E5%88%92-Dijkstra-5Hz"><span class="toc-number">1.8.1.</span> <span class="toc-text">8.1 全局规划 (Dijkstra, 5Hz)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%B1%80%E9%83%A8%E8%A7%84%E5%88%92-TEB-10Hz"><span class="toc-number">1.8.2.</span> <span class="toc-text">8.2 局部规划 (TEB, 10Hz)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E8%B7%AF%E5%BE%84%E8%B7%9F%E9%9A%8F%E8%87%AA%E7%94%B1%E5%BA%A6"><span class="toc-number">1.8.3.</span> <span class="toc-text">8.3 路径跟随自由度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E8%A7%84%E5%88%92%E5%A4%B1%E6%95%88%E5%85%9C%E5%BA%95"><span class="toc-number">1.8.4.</span> <span class="toc-text">8.4 规划失效兜底</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%BB%E7%A8%8B%E5%BA%8F%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6"><span class="toc-number">1.9.</span> <span class="toc-text">九、主程序关键机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E6%9C%8D%E5%8A%A1%E8%B6%85%E6%97%B6"><span class="toc-number">1.9.1.</span> <span class="toc-text">9.1 服务超时</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E9%98%B2%E9%87%8D%E5%A4%8D%E5%90%AF%E5%8A%A8"><span class="toc-number">1.9.2.</span> <span class="toc-text">9.2 防重复启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E6%A3%80%E6%B5%8B%E7%82%B9%E9%87%8D%E8%AF%95"><span class="toc-number">1.9.3.</span> <span class="toc-text">9.3 检测点重试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%96%87%E4%BB%B6%E6%B8%85%E5%8D%95"><span class="toc-number">1.10.</span> <span class="toc-text">十、文件清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.10.1.</span> <span class="toc-text">核心程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E6%96%87%E4%BB%B6"><span class="toc-number">1.10.2.</span> <span class="toc-text">参数文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E6%96%87%E4%BB%B6"><span class="toc-number">1.10.3.</span> <span class="toc-text">启动文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="toc-number">1.11.</span> <span class="toc-text">十一、调试工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E5%BF%AB%E9%80%9F%E8%AF%8A%E6%96%AD"><span class="toc-number">1.11.1.</span> <span class="toc-text">11.1 快速诊断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">1.11.2.</span> <span class="toc-text">11.2 常见错误</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E7%8E%B0%E5%9C%BA%E8%B0%83%E5%8F%82%E6%8C%87%E5%8D%97"><span class="toc-number">1.11.3.</span> <span class="toc-text">11.3 现场调参指南</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E5%BB%BA%E5%9B%BE%E6%8C%87%E5%8D%97"><span class="toc-number">1.11.4.</span> <span class="toc-text">11.4 建图指南</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E7%89%88%E6%9C%AC%E5%8E%86%E5%8F%B2"><span class="toc-number">1.12.</span> <span class="toc-text">十二、版本历史</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/06/19/test/" title="test">test</a><time datetime="2026-06-19T14:28:51.000Z" title="发表于 2026-06-19 22:28:51">2026-06-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
