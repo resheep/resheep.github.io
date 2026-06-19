@@ -39,6 +39,52 @@
 }
 
 
+/* ========== 友链美化 ========== */
+.flink-list-item {
+  transition: transform .3s, box-shadow .3s !important;
+}
+.flink-list-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.1);
+}
+.flink-list-item a {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 8px 12px;
+}
+.flink-item-icon {
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.flink-item-name {
+  color: #1a1a2e;
+}
+.flink-item-desc {
+  color: #6b7280;
+}
+.flink-name {
+  position: relative;
+  padding-left: 16px;
+}
+.flink-name::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #49b1f5, #a855f7);
+}
+.flink-desc {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 16px;
+  padding-left: 16px;
+}
+
 /* ========== 导航栏样式 ========== */
 /* 菜单栏居中 + 渐变(仅显示时可见) */
 #nav {
