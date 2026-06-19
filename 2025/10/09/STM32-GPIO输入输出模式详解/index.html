@@ -1,0 +1,468 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="为什么需要理解 GPIO 模式使用 STM32 时，CubeMX 或 HAL 库给 GPIO 提供了 8 种模式： 12345678GPIO_MODE_INPUT          输入浮空GPIO_MODE_INPUT_PULLUP   输入上拉GPIO_MODE_INPUT_PULLDOWN 输入下拉GPIO_MODE_ANALOG         模拟输入GPIO_MODE_OUTPUT_P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STM32 GPIO 推挽&#x2F;开漏&#x2F;上拉&#x2F;下拉 输入输出模式详解">
+<meta property="og:url" content="https://yujian.click/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="为什么需要理解 GPIO 模式使用 STM32 时，CubeMX 或 HAL 库给 GPIO 提供了 8 种模式： 12345678GPIO_MODE_INPUT          输入浮空GPIO_MODE_INPUT_PULLUP   输入上拉GPIO_MODE_INPUT_PULLDOWN 输入下拉GPIO_MODE_ANALOG         模拟输入GPIO_MODE_OUTPUT_P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg">
+<meta property="article:published_time" content="2025-10-09T13:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-20T13:00:00.000Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="STM32">
+<meta property="article:tag" content="嵌入式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解",
+  "url": "https://yujian.click/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/",
+  "image": "https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg",
+  "datePublished": "2025-10-09T13:00:00.000Z",
+  "dateModified": "2025-10-20T13:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "https://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yujian.click/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-09T13:00:00.000Z" title="发表于 2025-10-09 21:00:00">2025-10-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-20T13:00:00.000Z" title="更新于 2025-10-20 21:00:00">2025-10-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="为什么需要理解-GPIO-模式"><a href="#为什么需要理解-GPIO-模式" class="headerlink" title="为什么需要理解 GPIO 模式"></a>为什么需要理解 GPIO 模式</h2><p>使用 STM32 时，CubeMX 或 HAL 库给 GPIO 提供了 8 种模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GPIO_MODE_INPUT          输入浮空</span><br><span class="line">GPIO_MODE_INPUT_PULLUP   输入上拉</span><br><span class="line">GPIO_MODE_INPUT_PULLDOWN 输入下拉</span><br><span class="line">GPIO_MODE_ANALOG         模拟输入</span><br><span class="line">GPIO_MODE_OUTPUT_PP      推挽输出</span><br><span class="line">GPIO_MODE_OUTPUT_OD      开漏输出</span><br><span class="line">GPIO_MODE_AF_PP          复用推挽</span><br><span class="line">GPIO_MODE_AF_OD          复用开漏</span><br></pre></td></tr></table></figure>
+
+<p>选错模式轻则不工作，重则烧引脚。理解每种模式的内部电路，才能正确选型。</p>
+<h2 id="一、输出模式"><a href="#一、输出模式" class="headerlink" title="一、输出模式"></a>一、输出模式</h2><h3 id="1-1-推挽输出（Push-Pull）"><a href="#1-1-推挽输出（Push-Pull）" class="headerlink" title="1.1 推挽输出（Push-Pull）"></a>1.1 推挽输出（Push-Pull）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">     VDD</span><br><span class="line">      │</span><br><span class="line">┌─── P-MOS ───┐  输出高电平：P-MOS 导通, N-MOS 截止 → VDD</span><br><span class="line">│             │</span><br><span class="line">│      ┌──────┤─── GPIO</span><br><span class="line">│      │      │</span><br><span class="line">└─── N-MOS ───┘  输出低电平：N-MOS 导通, P-MOS 截止 → GND</span><br><span class="line">      │</span><br><span class="line">     GND</span><br></pre></td></tr></table></figure>
+
+<p><strong>工作原理</strong>：两个 MOS 管交替导通，”推”（P-MOS 送 VDD）和”挽”（N-MOS 拉 GND），输出端始终是确定的电平。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HAL 配置：</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;</span><br><span class="line"></span><br><span class="line">寄存器操作：</span><br><span class="line">GPIOx-&gt;CRL |= (0x2 &lt;&lt; pin*4);   // 输出模式, 推挽</span><br><span class="line">GPIOx-&gt;ODR |= (1 &lt;&lt; pin);        // 输出高</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>驱动能力</td>
+<td>强，通常 ±25mA&#x2F;引脚</td>
+</tr>
+<tr>
+<td>电平</td>
+<td>明确的高&#x2F;低，无中间态</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>快，可达 50MHz</td>
+</tr>
+<tr>
+<td>线与</td>
+<td>❌ 不支持，两个推挽输出不能短接</td>
+</tr>
+</tbody></table>
+<p><strong>典型应用</strong>：</p>
+<ul>
+<li>LED 驱动（<code>LED_GPIO_Port → LED_Pin</code>）</li>
+<li>控制继电器&#x2F;蜂鸣器</li>
+<li>普通数字信号输出</li>
+</ul>
+<h3 id="1-2-开漏输出（Open-Drain）"><a href="#1-2-开漏输出（Open-Drain）" class="headerlink" title="1.2 开漏输出（Open-Drain）"></a>1.2 开漏输出（Open-Drain）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">         VDD                 VDD</span><br><span class="line">          │                   │</span><br><span class="line">          │   外接上拉电阻     │</span><br><span class="line">          │     4.7KΩ         │</span><br><span class="line">    ┌───────────┤             │</span><br><span class="line">    │           │             │</span><br><span class="line">    │      ┌────┴────── GPIO  │</span><br><span class="line">    │      │                  │</span><br><span class="line">    └─── N-MOS ───┐           │</span><br><span class="line">          │        │           │</span><br><span class="line">         GND                  │</span><br><span class="line">                              │</span><br><span class="line">输出高：N-MOS 截止 → 上拉电阻拉到 VDD</span><br><span class="line">输出低：N-MOS 导通 → 拉到 GND</span><br></pre></td></tr></table></figure>
+
+<p><strong>工作原理</strong>：只有 N-MOS 管，输出高电平时靠<strong>外部上拉电阻</strong>拉到 VDD。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">HAL 配置：</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;</span><br><span class="line">// 注意：必须外接上拉电阻或在内部使能上拉</span><br><span class="line"></span><br><span class="line">寄存器操作：</span><br><span class="line">GPIOx-&gt;CRL |= (0x6 &lt;&lt; pin*4);   // 输出模式, 开漏</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>驱动能力</td>
+<td>高电平由上拉电阻决定（弱），低电平由 N-MOS 决定（强）</td>
+</tr>
+<tr>
+<td>电平转换</td>
+<td>上拉电阻接 5V 即可驱动 5V 设备（3.3V STM32 → 5V 外设）</td>
+</tr>
+<tr>
+<td>线与</td>
+<td>✅ 多个开漏输出可直接并接，任一拉低即低</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>受上拉电阻影响，RC 充放电限制频率</td>
+</tr>
+</tbody></table>
+<p><strong>典型应用</strong>：</p>
+<ul>
+<li><strong>I2C 总线</strong>（SDA&#x2F;SCL 必须开漏，靠外部上拉）</li>
+<li><strong>1-Wire</strong>（DS18B20 单总线）</li>
+<li><strong>多设备共享信号线</strong>（多个芯片的 INT 中断引脚并接）</li>
+<li><strong>5V 电平转换</strong>（上拉电阻接 5V）</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">为什么 I2C 必须用开漏：</span><br><span class="line"></span><br><span class="line">   SDA ──┬────┬────┬──── VDD</span><br><span class="line">         │    │    │    │</span><br><span class="line">      4.7K   DEV1 DEV2 DEV3</span><br><span class="line">         │    │    │    │</span><br><span class="line">        GND  OD   OD   OD</span><br><span class="line"></span><br><span class="line">所有设备都是开漏 → 任一设备可以拉低 SDA → 实现多主仲裁</span><br><span class="line">如果推挽，两个设备同时输出不同电平 → 短路烧毁</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、输入模式"><a href="#二、输入模式" class="headerlink" title="二、输入模式"></a>二、输入模式</h2><h3 id="2-1-浮空输入"><a href="#2-1-浮空输入" class="headerlink" title="2.1 浮空输入"></a>2.1 浮空输入</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">             GPIO</span><br><span class="line">              │</span><br><span class="line">    ┌─────────┤</span><br><span class="line">    │         │</span><br><span class="line">  ESD         输入缓冲器 ──→ 内部数据总线</span><br><span class="line">    │         │</span><br><span class="line">    └─────────┤</span><br><span class="line">              │</span><br><span class="line">             GND</span><br><span class="line"></span><br><span class="line">无上拉/下拉，引脚电平完全由外部信号决定。</span><br><span class="line">悬空时电平不确定（受电磁干扰会乱跳）。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HAL 配置：</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_INPUT;         // 无上下拉</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_NOPULL;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-上拉输入"><a href="#2-2-上拉输入" class="headerlink" title="2.2 上拉输入"></a>2.2 上拉输入</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">         VDD</span><br><span class="line">          │</span><br><span class="line">     内部上拉 (~40KΩ)</span><br><span class="line">          │</span><br><span class="line">          ├────── GPIO ──── 输入缓冲器</span><br><span class="line">          │</span><br><span class="line">        外部按键</span><br><span class="line">          │</span><br><span class="line">         GND</span><br><span class="line"></span><br><span class="line">默认状态（按键未按下）：上拉电阻 → GPIO 读到高电平</span><br><span class="line">按键按下：GPIO 直接接地 → 读到低电平</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HAL 配置：</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_INPUT;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_PULLUP;</span><br></pre></td></tr></table></figure>
+
+<p><strong>典型应用</strong>：</p>
+<ul>
+<li><strong>按键检测</strong>（按键接地，默认高电平，按下变低）</li>
+<li><strong>I2C 空闲保持高电平</strong></li>
+<li><strong>UART RX 防悬空乱收数据</strong></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">按键接线（上拉输入）：</span><br><span class="line"></span><br><span class="line">  VDD ──── 内部上拉 ~40KΩ</span><br><span class="line">               │</span><br><span class="line">               ├──── GPIO ──── MCU</span><br><span class="line">               │</span><br><span class="line">            ┌──┤</span><br><span class="line">            │  │</span><br><span class="line">            │按键</span><br><span class="line">            │  │</span><br><span class="line">            └──┤</span><br><span class="line">               │</span><br><span class="line">              GND</span><br><span class="line"></span><br><span class="line">按下 → 低电平  松开 → 高电平（上拉）</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-下拉输入"><a href="#2-3-下拉输入" class="headerlink" title="2.3 下拉输入"></a>2.3 下拉输入</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">         外部按键</span><br><span class="line">          │</span><br><span class="line">         VDD</span><br><span class="line">          │</span><br><span class="line">          ├────── GPIO ──── 输入缓冲器</span><br><span class="line">          │</span><br><span class="line">     内部下拉 (~40KΩ)</span><br><span class="line">          │</span><br><span class="line">         GND</span><br><span class="line"></span><br><span class="line">默认状态（按键未按下）：下拉电阻 → GPIO 读到低电平</span><br><span class="line">按键按下：GPIO 直接接 VDD → 读到高电平</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HAL 配置：</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_INPUT;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_PULLDOWN;</span><br></pre></td></tr></table></figure>
+
+<p><strong>典型应用</strong>：</p>
+<ul>
+<li><strong>按键检测</strong>（按键接 VDD，默认低电平，按下变高）</li>
+<li><strong>使能引脚</strong>（默认禁用，外接高电平使能）</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">按键接线（下拉输入）：</span><br><span class="line"></span><br><span class="line">  VDD</span><br><span class="line">   │</span><br><span class="line">   ├──── 按键 ──── GPIO ──── MCU</span><br><span class="line">   │                │</span><br><span class="line">   │          内部下拉 ~40KΩ</span><br><span class="line">   │                │</span><br><span class="line">   │               GND</span><br><span class="line"></span><br><span class="line">按下 → 高电平  松开 → 低电平（下拉）</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、上拉-vs-下拉：按键怎么选"><a href="#三、上拉-vs-下拉：按键怎么选" class="headerlink" title="三、上拉 vs 下拉：按键怎么选"></a>三、上拉 vs 下拉：按键怎么选</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>上拉输入</th>
+<th>下拉输入</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>默认电平</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>按键接法</td>
+<td>按键 → GND</td>
+<td>按键 → VDD</td>
+</tr>
+<tr>
+<td>抗干扰</td>
+<td>较好（高电平驱动强）</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>省电</td>
+<td>无按键时上拉电阻耗电</td>
+<td>无按键时下拉电阻耗电</td>
+</tr>
+<tr>
+<td>业界惯例</td>
+<td><strong>更常用</strong></td>
+<td>较少</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>经验法则</strong>：按键优先用上拉输入。几乎所有 MCU 的 GPIO 默认状态都是上拉或浮空，下拉支持较弱。STM32 每个 GPIO 内部上拉约 40KΩ。</p>
+</blockquote>
+<h2 id="四、推挽-vs-开漏：输出怎么选"><a href="#四、推挽-vs-开漏：输出怎么选" class="headerlink" title="四、推挽 vs 开漏：输出怎么选"></a>四、推挽 vs 开漏：输出怎么选</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>选推挽</th>
+<th>选开漏</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LED</td>
+<td>✅</td>
+<td>也能用</td>
+</tr>
+<tr>
+<td>普通 IO 控制</td>
+<td>✅</td>
+<td>❌（需外加电阻）</td>
+</tr>
+<tr>
+<td>I2C</td>
+<td>❌</td>
+<td>✅ 必须</td>
+</tr>
+<tr>
+<td>多设备共享线</td>
+<td>❌</td>
+<td>✅ 线与</td>
+</tr>
+<tr>
+<td>电平转换 3.3→5V</td>
+<td>❌</td>
+<td>✅ 上拉接 5V</td>
+</tr>
+<tr>
+<td>高速信号</td>
+<td>✅ 50MHz</td>
+<td>慢（RC 限制）</td>
+</tr>
+</tbody></table>
+<h2 id="五、HAL-库配置速查"><a href="#五、HAL-库配置速查" class="headerlink" title="五、HAL 库配置速查"></a>五、HAL 库配置速查</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">GPIO_InitTypeDef GPIO_InitStruct = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* === 推挽输出（LED, 蜂鸣器, 普通 IO） === */</span></span><br><span class="line">GPIO_InitStruct.Pin = GPIO_PIN_0;</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_NOPULL;</span><br><span class="line">GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;</span><br><span class="line">HAL_GPIO_Init(GPIOA, &amp;GPIO_InitStruct);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* === 开漏输出（I2C, 电平转换） === */</span></span><br><span class="line">GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_PULLUP;     <span class="comment">// 可选内部上拉，但通常外加 4.7K</span></span><br><span class="line">GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;</span><br><span class="line">HAL_GPIO_Init(GPIOB, &amp;GPIO_InitStruct);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* === 上拉输入（按键接 GND） === */</span></span><br><span class="line">GPIO_InitStruct.Pin = GPIO_PIN_0;</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_INPUT;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_PULLUP;</span><br><span class="line">HAL_GPIO_Init(GPIOC, &amp;GPIO_InitStruct);</span><br><span class="line"><span class="comment">// 读取：HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_RESET → 按下</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* === 下拉输入（按键接 VDD） === */</span></span><br><span class="line">GPIO_InitStruct.Pin = GPIO_PIN_1;</span><br><span class="line">GPIO_InitStruct.Mode = GPIO_MODE_INPUT;</span><br><span class="line">GPIO_InitStruct.Pull = GPIO_PULLDOWN;</span><br><span class="line">HAL_GPIO_Init(GPIOC, &amp;GPIO_InitStruct);</span><br><span class="line"><span class="comment">// 读取：HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_1) == GPIO_PIN_SET → 按下</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="六、常见错误"><a href="#六、常见错误" class="headerlink" title="六、常见错误"></a>六、常见错误</h2><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>原因</th>
+<th>解决</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I2C 通信失败</td>
+<td>配置成推挽输出</td>
+<td>改为 <code>GPIO_MODE_AF_OD</code></td>
+</tr>
+<tr>
+<td>按键读到乱跳</td>
+<td>浮空输入，未加上拉</td>
+<td>改为 <code>GPIO_PULLUP</code></td>
+</tr>
+<tr>
+<td>LED 亮度很暗</td>
+<td>开漏输出未加上拉电阻</td>
+<td>改为推挽，或外接上拉</td>
+</tr>
+<tr>
+<td>引脚发热</td>
+<td>两个推挽输出短接</td>
+<td>检查电路，改用开漏</td>
+</tr>
+<tr>
+<td>悬空引脚电平乱跳</td>
+<td>未用引脚配置为浮空输入</td>
+<td>设为模拟模式 <code>GPIO_MODE_ANALOG</code></td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://yujian.click/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/">https://yujian.click/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a></div><div class="post-share"><div class="social-share" data-image="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">STM32F103C8T6 HAL库 PWM 呼吸灯</div></div><div class="info-2"><div class="info-item-1">硬件需求   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   LED 5mm 发光二极管 1   电阻 220Ω（限流） 1   下载器 ST-Link V2 1   硬件连接12STM32F103C8T6              LED    PA0  ──── PWM ────  (220Ω) ────  LED(+) ──── GND  TIM2_CH1 复用 PA0 输出 PWM，占空比 0%→100%→0% 循环实现呼吸效果。 PWM 原理123456789101112131415PWM（Pulse Width Modulation）脉冲宽度调制：固定频率下，调节高电平占比（占空比）来控制平均输出电压。周期 T = 1/f，占空比 = t_on / T × 100%高电平 ┌────┐    ┌────┐  25%  → LED 微亮低电平 └────┴────┴────┘高电平 ┌──────┐  ┌──────┐  50%  → LED 半亮低电平 └──────┴──┴──────┘高电平 ┌────────┐┌────────┐ ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-20</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div><div class="info-2"><div class="info-item-1">硬件准备   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   传感器 MPU6050 模块（GY-521） 1   下载器 ST-Link V2 1   连接线 杜邦线 4 根 4   硬件连接（I2C1）12345STM32F103C8T6          MPU6050 (GY-521)    PB6  ──── SCL ────  SCL    PB7  ──── SDA ────  SDA    3.3V ──── VCC ────  VCC    GND  ──── GND ────  GND  I2C1 复用引脚：PB6&#x3D;SCL, PB7&#x3D;SDA。MPU6050 默认 7 位地址 0x68 &lt;&lt; 1 = 0xD0（AD0 接地）。 CubeMX 配置   外设 配置 说明    I2C1 Fast Mode 400KHz, PB6&#x2F;PB7 MPU6050 通信   USART1 115200-8-N-1, PA9(TX) 串口输出角度   TIM2 8ms 定时中断, 72MHz→PSC&#x3...</div></div></div></a><a class="pagination-related" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-12</div><div class="info-item-2">STM32F103C8T6 HAL库 PWM 呼吸灯</div></div><div class="info-2"><div class="info-item-1">硬件需求   器件 型号 数量    主控 STM32F103C8T6 最小系统板 1   LED 5mm 发光二极管 1   电阻 220Ω（限流） 1   下载器 ST-Link V2 1   硬件连接12STM32F103C8T6              LED    PA0  ──── PWM ────  (220Ω) ────  LED(+) ──── GND  TIM2_CH1 复用 PA0 输出 PWM，占空比 0%→100%→0% 循环实现呼吸效果。 PWM 原理123456789101112131415PWM（Pulse Width Modulation）脉冲宽度调制：固定频率下，调节高电平占比（占空比）来控制平均输出电压。周期 T = 1/f，占空比 = t_on / T × 100%高电平 ┌────┐    ┌────┐  25%  → LED 微亮低电平 └────┴────┴────┘高电平 ┌──────┐  ┌──────┐  50%  → LED 半亮低电平 └──────┴──┴──────┘高电平 ┌────────┐┌────────┐ ...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/resheep"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%90%86%E8%A7%A3-GPIO-%E6%A8%A1%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">为什么需要理解 GPIO 模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">一、输出模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%8E%A8%E6%8C%BD%E8%BE%93%E5%87%BA%EF%BC%88Push-Pull%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 推挽输出（Push-Pull）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%BC%80%E6%BC%8F%E8%BE%93%E5%87%BA%EF%BC%88Open-Drain%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 开漏输出（Open-Drain）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%BE%93%E5%85%A5%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.</span> <span class="toc-text">二、输入模式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%B5%AE%E7%A9%BA%E8%BE%93%E5%85%A5"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 浮空输入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%8A%E6%8B%89%E8%BE%93%E5%85%A5"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 上拉输入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%8B%E6%8B%89%E8%BE%93%E5%85%A5"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 下拉输入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%8A%E6%8B%89-vs-%E4%B8%8B%E6%8B%89%EF%BC%9A%E6%8C%89%E9%94%AE%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">4.</span> <span class="toc-text">三、上拉 vs 下拉：按键怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8E%A8%E6%8C%BD-vs-%E5%BC%80%E6%BC%8F%EF%BC%9A%E8%BE%93%E5%87%BA%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">5.</span> <span class="toc-text">四、推挽 vs 开漏：输出怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81HAL-%E5%BA%93%E9%85%8D%E7%BD%AE%E9%80%9F%E6%9F%A5"><span class="toc-number">6.</span> <span class="toc-text">五、HAL 库配置速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="toc-number">7.</span> <span class="toc-text">六、常见错误</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32F103C8T6 + MPU6050 姿态传感器项目实践"/></a><div class="content"><a class="title" href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践">STM32F103C8T6 + MPU6050 姿态传感器项目实践</a><time datetime="2025-10-20T10:00:00.000Z" title="发表于 2025-10-20 18:00:00">2025-10-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32F103C8T6 HAL库 PWM 呼吸灯"/></a><div class="content"><a class="title" href="/2025/10/12/STM32F103C8T6-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32F103C8T6 HAL库 PWM 呼吸灯">STM32F103C8T6 HAL库 PWM 呼吸灯</a><time datetime="2025-10-12T12:00:00.000Z" title="发表于 2025-10-12 20:00:00">2025-10-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/" title="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解"/></a><div class="content"><a class="title" href="/2025/10/09/STM32-GPIO%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E6%A8%A1%E5%BC%8F%E8%AF%A6%E8%A7%A3/" title="STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解">STM32 GPIO 推挽/开漏/上拉/下拉 输入输出模式详解</a><time datetime="2025-10-09T13:00:00.000Z" title="发表于 2025-10-09 21:00:00">2025-10-09</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script src="/js/per-page-bg.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
