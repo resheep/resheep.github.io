@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <linearGradient id="cSrc" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient>
+    <linearGradient id="cPll" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#ea580c"/></linearGradient>
+    <linearGradient id="cSys" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient>
+    <linearGradient id="cAhb" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient>
+    <linearGradient id="cApb1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+    <linearGradient id="cApb2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#e11d48"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-opacity="0.12"/></filter>
+    <marker id="ar" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#64748b"/></marker>
+  </defs>
+
+  <rect width="900" height="420" fill="#f8fafc" rx="14"/>
+
+  <!-- 标题 -->
+  <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">STM32F103 时钟树</text>
+
+  <!-- ============ 第一排 ============ -->
+  <!-- HSE -->
+  <rect x="10" y="55" width="110" height="34" rx="8" fill="url(#cSrc)" filter="url(#s)"/>
+  <text x="65" y="68" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">HSE 4~16MHz</text>
+  <text x="65" y="82" text-anchor="middle" fill="#fff" font-size="9">外部晶振</text>
+  <line x1="120" y1="72" x2="148" y2="72" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- HSI -->
+  <rect x="10" y="105" width="110" height="34" rx="8" fill="url(#cSrc)" filter="url(#s)"/>
+  <text x="65" y="118" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">HSI 8MHz RC</text>
+  <text x="65" y="132" text-anchor="middle" fill="#fff" font-size="9">内部振荡器</text>
+  <line x1="120" y1="122" x2="148" y2="122" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- MUX -->
+  <rect x="153" y="75" width="36" height="50" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="171" y="106" text-anchor="middle" font-size="12" fill="#475569" font-weight="600">MUX</text>
+
+  <!-- MUX → PLL -->
+  <line x1="189" y1="100" x2="218" y2="100" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- PLL -->
+  <rect x="223" y="80" width="130" height="40" rx="10" fill="url(#cPll)" filter="url(#s)"/>
+  <text x="288" y="98" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">PLL</text>
+  <text x="288" y="113" text-anchor="middle" fill="#fff" font-size="10">×2 ~ ×16</text>
+
+  <!-- PLL → SYSCLK MUX -->
+  <line x1="353" y1="100" x2="382" y2="100" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- HSE 直通 SYSCLK -->
+  <path d="M65,55 L65,40 L380,40 L380,143" stroke="#94a3b8" stroke-width="1.2" fill="none" stroke-dasharray="5,3" marker-end="url(#ar)"/>
+  <text x="200" y="36" font-size="9" fill="#94a3b8">HSE 直通（不经 PLL）</text>
+
+  <!-- HSI 直通 SYSCLK -->
+  <path d="M65,105 L65,115 L420,115 L420,143" stroke="#94a3b8" stroke-width="1.2" fill="none" stroke-dasharray="5,3" marker-end="url(#ar)"/>
+  <text x="270" y="112" font-size="9" fill="#94a3b8">HSI 直通（不经 PLL）</text>
+
+  <!-- ============ 第二排：SYSCLK ============ -->
+  <!-- SYSCLK MUX -->
+  <rect x="340" y="145" width="120" height="28" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="400" y="163" text-anchor="middle" font-size="11" fill="#475569" font-weight="600">SYSCLK MUX</text>
+
+  <!-- SYSCLK MUX → SYSCLK -->
+  <line x1="460" y1="159" x2="488" y2="159" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- SYSCLK -->
+  <rect x="493" y="145" width="140" height="30" rx="10" fill="url(#cSys)" filter="url(#s)"/>
+  <text x="563" y="163" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">SYSCLK</text>
+  <text x="563" y="173" text-anchor="middle" fill="#fff" font-size="9">72MHz（最大）</text>
+
+  <!-- SYSCLK → AHB 分频 -->
+  <line x1="633" y1="160" x2="662" y2="160" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- AHB 分频 -->
+  <rect x="667" y="146" width="130" height="28" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="732" y="163" text-anchor="middle" font-size="11" fill="#475569" font-weight="600">AHB /1~512</text>
+
+  <!-- ============ 第三排：HCLK 与分支 ============ -->
+  <!-- AHB 分频 → HCLK -->
+  <line x1="732" y1="174" x2="732" y2="208" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- HCLK -->
+  <rect x="610" y="213" width="245" height="34" rx="10" fill="url(#cAhb)" filter="url(#s)"/>
+  <text x="732" y="230" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">HCLK（AHB 总线）</text>
+  <text x="732" y="243" text-anchor="middle" fill="#fff" font-size="9">≤ 72MHz</text>
+
+  <!-- HCLK → Cortex-M3 -->
+  <line x1="610" y1="230" x2="560" y2="230" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="410" y="218" width="145" height="26" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.5" filter="url(#s)"/>
+  <text x="482" y="235" text-anchor="middle" font-size="10" font-weight="600" fill="#0284c7">Cortex-M3 · DMA · FLASH</text>
+
+  <!-- HCLK 向下到 APB1/APB2 -->
+  <line x1="732" y1="247" x2="732" y2="278" stroke="#64748b" stroke-width="1.5"/>
+  <line x1="200" y1="278" x2="732" y2="278" stroke="#64748b" stroke-width="1.5"/>
+  <line x1="200" y1="278" x2="200" y2="295" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="732" y1="278" x2="732" y2="295" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- ============ 第四排：APB ============ -->
+  <!-- APB1 分频 -->
+  <rect x="135" y="300" width="130" height="28" rx="6" fill="#fff" stroke="#86efac" stroke-width="1.5"/>
+  <text x="200" y="318" text-anchor="middle" font-size="11" fill="#059669" font-weight="600">APB1 /1~16</text>
+
+  <!-- APB2 分频 -->
+  <rect x="667" y="300" width="130" height="28" rx="6" fill="#fff" stroke="#fca5a5" stroke-width="1.5"/>
+  <text x="732" y="318" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="600">APB2 /1~16</text>
+
+  <!-- 分频 → PCLK -->
+  <line x1="200" y1="328" x2="200" y2="345" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="105" y="350" width="190" height="28" rx="8" fill="url(#cApb1)" filter="url(#s)"/>
+  <text x="200" y="365" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">PCLK1（APB1）≤ 36MHz</text>
+  <text x="200" y="374" text-anchor="middle" fill="#fff" font-size="9">TIM2~7 · USART2~5 · I2C1/2 · SPI2/3 · DAC · PWR</text>
+
+  <line x1="732" y1="328" x2="732" y2="345" stroke="#64748b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="637" y="350" width="190" height="28" rx="8" fill="url(#cApb2)" filter="url(#s)"/>
+  <text x="732" y="365" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">PCLK2（APB2）≤ 72MHz</text>
+  <text x="732" y="374" text-anchor="middle" fill="#fff" font-size="9">TIM1/8 · USART1 · SPI1 · GPIO · ADC</text>
+
+  <!-- ============ 底部注释 ============ -->
+  <rect x="340" y="392" width="220" height="20" rx="4" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="450" y="406" text-anchor="middle" font-size="9" fill="#64748b">📌 APB 分频 &gt; 1 时：定时器时钟 = PCLK × 2</text>
+</svg>

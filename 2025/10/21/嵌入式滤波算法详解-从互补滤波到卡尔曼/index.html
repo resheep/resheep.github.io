@@ -1,0 +1,505 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>滤波算法详解：从互补滤波到卡尔曼 | 世海浮沉，于屿得见本真归处</title><meta name="author" content="屿见"><meta name="copyright" content="屿见"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="为什么需要滤波传感器原始数据充满噪声：   MPU6050 加速度计高频抖动 → 角度漂移 超声波 测距偶尔跳变 → 距离突跳 ADC 采样噪声 → 电压值不稳  选对滤波算法，效果天差地别。 一、滑动平均滤波最简单、最常用。取 N 次采样的平均值。 123456789101112131415161718192021222324&#x2F;* 滑动平均滤波器 *&#x2F;#define WINDOW_SIZE  5">
+<meta property="og:type" content="article">
+<meta property="og:title" content="滤波算法详解：从互补滤波到卡尔曼">
+<meta property="og:url" content="https://yujian.click/2025/10/21/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3-%E4%BB%8E%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2%E5%88%B0%E5%8D%A1%E5%B0%94%E6%9B%BC/index.html">
+<meta property="og:site_name" content="世海浮沉，于屿得见本真归处">
+<meta property="og:description" content="为什么需要滤波传感器原始数据充满噪声：   MPU6050 加速度计高频抖动 → 角度漂移 超声波 测距偶尔跳变 → 距离突跳 ADC 采样噪声 → 电压值不稳  选对滤波算法，效果天差地别。 一、滑动平均滤波最简单、最常用。取 N 次采样的平均值。 123456789101112131415161718192021222324&#x2F;* 滑动平均滤波器 *&#x2F;#define WINDOW_SIZE  5">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg">
+<meta property="article:published_time" content="2025-10-21T10:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-21T10:00:00.000Z">
+<meta property="article:author" content="屿见">
+<meta property="article:tag" content="STM32">
+<meta property="article:tag" content="滤波算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "滤波算法详解：从互补滤波到卡尔曼",
+  "url": "https://yujian.click/2025/10/21/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3-%E4%BB%8E%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2%E5%88%B0%E5%8D%A1%E5%B0%94%E6%9B%BC/",
+  "image": "https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg",
+  "datePublished": "2025-10-21T10:00:00.000Z",
+  "dateModified": "2026-06-21T10:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "屿见",
+      "url": "https://yujian.click"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yujian.click/2025/10/21/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3-%E4%BB%8E%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2%E5%88%B0%E5%8D%A1%E5%B0%94%E6%9B%BC/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '滤波算法详解：从互补滤波到卡尔曼',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://npm.elemecdn.com/hexo-butterfly-categories-card@1.0.0/lib/categorybar.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 8.1.2"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="spinner-donut"></div><div class="loading-word"><span>加载中...</span><div class="loading-dots"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div></div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      if ($loadingBox.classList.contains('loaded')) return
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+
+  // 等待所有资源（包括图片）加载完成再结束动画
+  if (document.readyState === 'complete') {
+    preloader.endLoading()
+  } else {
+    window.addEventListener('load', preloader.endLoading)
+  }
+  // 超时保护：最多等 8 秒
+  setTimeout(preloader.endLoading, 8000)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div class="bg-animation" id="web_bg" style="background-image: url(/img/index-banner.jpg);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/favicon.png" alt="Logo"></a><a class="nav-page-title" href="/"><span class="site-name">滤波算法详解：从互补滤波到卡尔曼</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间线</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/links/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">滤波算法详解：从互补滤波到卡尔曼</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-21T10:00:00.000Z" title="发表于 2025-10-21 18:00:00">2025-10-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-06-21T10:00:00.000Z" title="更新于 2026-06-21 18:00:00">2026-06-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B5%8C%E5%85%A5%E5%BC%8F/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="为什么需要滤波"><a href="#为什么需要滤波" class="headerlink" title="为什么需要滤波"></a>为什么需要滤波</h2><p>传感器原始数据充满噪声：</p>
+<p><img src="/images/filter-demo.svg"></p>
+<ul>
+<li><strong>MPU6050</strong> 加速度计高频抖动 → 角度漂移</li>
+<li><strong>超声波</strong> 测距偶尔跳变 → 距离突跳</li>
+<li><strong>ADC</strong> 采样噪声 → 电压值不稳</li>
+</ul>
+<p>选对滤波算法，效果天差地别。</p>
+<h2 id="一、滑动平均滤波"><a href="#一、滑动平均滤波" class="headerlink" title="一、滑动平均滤波"></a>一、滑动平均滤波</h2><p>最简单、最常用。取 N 次采样的平均值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 滑动平均滤波器 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WINDOW_SIZE  5</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> buf[WINDOW_SIZE];</span><br><span class="line">  <span class="type">uint8_t</span> index;</span><br><span class="line">  <span class="type">float</span> sum;</span><br><span class="line">  <span class="type">uint8_t</span> filled;</span><br><span class="line">&#125; MovingAvg;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">MovingAvg_Update</span><span class="params">(MovingAvg *f, <span class="type">float</span> x)</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (f-&gt;filled &lt; WINDOW_SIZE) &#123;</span><br><span class="line">    f-&gt;filled++;</span><br><span class="line">    f-&gt;sum += x;</span><br><span class="line">    f-&gt;buf[f-&gt;index] = x;</span><br><span class="line">    f-&gt;index = (f-&gt;index + <span class="number">1</span>) % WINDOW_SIZE;</span><br><span class="line">    <span class="keyword">return</span> f-&gt;sum / f-&gt;filled;</span><br><span class="line">  &#125;</span><br><span class="line">  f-&gt;sum -= f-&gt;buf[f-&gt;index];</span><br><span class="line">  f-&gt;buf[f-&gt;index] = x;</span><br><span class="line">  f-&gt;sum += x;</span><br><span class="line">  f-&gt;index = (f-&gt;index + <span class="number">1</span>) % WINDOW_SIZE;</span><br><span class="line">  <span class="keyword">return</span> f-&gt;sum / WINDOW_SIZE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>特点：</strong></p>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现极简单</td>
+<td>有 N&#x2F;2 样本延迟</td>
+</tr>
+<tr>
+<td>有效抑制随机噪声</td>
+<td>对脉冲干扰敏感</td>
+</tr>
+<tr>
+<td>计算量小</td>
+<td>窗口越大响应越慢</td>
+</tr>
+</tbody></table>
+<p><strong>适用：</strong> ADC 采样平滑、超声波测距、温度读数</p>
+<h2 id="二、中值滤波"><a href="#二、中值滤波" class="headerlink" title="二、中值滤波"></a>二、中值滤波</h2><p>取 N 次采样的中间值，<strong>对脉冲干扰免疫</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 中值滤波 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MEDIAN_SIZE  5</span></span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">Median_Update</span><span class="params">(<span class="type">float</span> x)</span> &#123;</span><br><span class="line">  <span class="type">static</span> <span class="type">float</span> buf[MEDIAN_SIZE];</span><br><span class="line">  <span class="type">static</span> <span class="type">uint8_t</span> index = <span class="number">0</span>;</span><br><span class="line">  <span class="type">float</span> tmp[MEDIAN_SIZE];</span><br><span class="line"></span><br><span class="line">  buf[index] = x;</span><br><span class="line">  index = (index + <span class="number">1</span>) % MEDIAN_SIZE;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 复制并排序 */</span></span><br><span class="line">  <span class="built_in">memcpy</span>(tmp, buf, <span class="keyword">sizeof</span>(buf));</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; MEDIAN_SIZE - <span class="number">1</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; MEDIAN_SIZE - <span class="number">1</span> - i; j++) &#123;</span><br><span class="line">      <span class="keyword">if</span> (tmp[j] &gt; tmp[j + <span class="number">1</span>]) &#123;</span><br><span class="line">        <span class="type">float</span> t = tmp[j]; tmp[j] = tmp[j + <span class="number">1</span>]; tmp[j + <span class="number">1</span>] = t;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> tmp[MEDIAN_SIZE / <span class="number">2</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>适用：</strong> 超声波偶尔跳变、红外测距、按键消抖</p>
+<h2 id="三、一阶低通滤波（RC-滤波）"><a href="#三、一阶低通滤波（RC-滤波）" class="headerlink" title="三、一阶低通滤波（RC 滤波）"></a>三、一阶低通滤波（RC 滤波）</h2><p>模拟 RC 低通电路的数字化版本，<strong>最常用的实时滤波器</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 一阶低通滤波 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> alpha;  <span class="comment">// 滤波系数 0~1，越小越平滑</span></span><br><span class="line">  <span class="type">float</span> last;</span><br><span class="line">&#125; LowPass;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">LowPass_Update</span><span class="params">(LowPass *f, <span class="type">float</span> x)</span> &#123;</span><br><span class="line">  f-&gt;last = f-&gt;alpha * x + (<span class="number">1</span> - f-&gt;alpha) * f-&gt;last;</span><br><span class="line">  <span class="keyword">return</span> f-&gt;last;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用示例 */</span></span><br><span class="line">LowPass lp = &#123; .alpha = <span class="number">0.15f</span>, .last = <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">  <span class="type">float</span> raw = Read_AD9700();           <span class="comment">// 原始 ADC</span></span><br><span class="line">  <span class="type">float</span> filtered = LowPass_Update(&amp;lp, raw);  <span class="comment">// 滤波后</span></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;raw=%.2f  filtered=%.2f\r\n&quot;</span>, raw, filtered);</span><br><span class="line">  HAL_Delay(<span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="截止频率计算"><a href="#截止频率计算" class="headerlink" title="截止频率计算"></a>截止频率计算</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">alpha = T / (T + RC)</span><br><span class="line"></span><br><span class="line">其中 T = 采样周期，RC = 时间常数</span><br><span class="line"></span><br><span class="line">截止频率: fc = 1 / (2π × RC) = alpha / (2π × T × (1-alpha))</span><br><span class="line"></span><br><span class="line">例: T=10ms, alpha=0.15</span><br><span class="line">    → fc ≈ 0.15 / (2π × 0.01 × 0.85) ≈ 2.8Hz</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>alpha</th>
+<th>平滑程度</th>
+<th>截止频率（@10ms采样）</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.5</td>
+<td>较弱</td>
+<td>~16Hz</td>
+<td>轻度去抖</td>
+</tr>
+<tr>
+<td>0.15</td>
+<td>中等</td>
+<td>~2.8Hz</td>
+<td>姿态角度（推荐）</td>
+</tr>
+<tr>
+<td>0.05</td>
+<td>很强</td>
+<td>~0.8Hz</td>
+<td>温度等慢变信号</td>
+</tr>
+</tbody></table>
+<h2 id="四、高通滤波"><a href="#四、高通滤波" class="headerlink" title="四、高通滤波"></a>四、高通滤波</h2><p>保留变化快的分量，滤除直流偏置。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 一阶高通滤波 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> alpha;</span><br><span class="line">  <span class="type">float</span> last_input;</span><br><span class="line">  <span class="type">float</span> last_output;</span><br><span class="line">&#125; HighPass;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">HighPass_Update</span><span class="params">(HighPass *f, <span class="type">float</span> x)</span> &#123;</span><br><span class="line">  f-&gt;last_output = f-&gt;alpha * (f-&gt;last_output + x - f-&gt;last_input);</span><br><span class="line">  f-&gt;last_input = x;</span><br><span class="line">  <span class="keyword">return</span> f-&gt;last_output;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用：滤除加速度计的重力分量 */</span></span><br><span class="line">HighPass hp = &#123; .alpha = <span class="number">0.9f</span> &#125;;</span><br><span class="line"><span class="type">float</span> accel_without_gravity = HighPass_Update(&amp;hp, raw_accel);</span><br></pre></td></tr></table></figure>
+
+<h2 id="五、互补滤波"><a href="#五、互补滤波" class="headerlink" title="五、互补滤波"></a>五、互补滤波</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>陀螺仪<strong>高频准</strong>但<strong>低频漂</strong>，加速度计<strong>低频准</strong>但<strong>高频抖</strong>。</p>
+<p>互补滤波取各自长处：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">angle = 0.98 × (angle + gyro × dt) + 0.02 × accel_angle</span><br><span class="line">         │         陀螺仪积分（高频信任）         │  │ 加速度计修正（低频信任）│</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 一阶互补滤波（单轴） */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> alpha;  <span class="comment">// 陀螺仪权重，通常 0.96~0.99</span></span><br><span class="line">  <span class="type">float</span> angle;</span><br><span class="line">&#125; Complementary;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">Complementary_Update</span><span class="params">(Complementary *f,</span></span><br><span class="line"><span class="params">    <span class="type">float</span> gyro_rate, <span class="type">float</span> accel_angle, <span class="type">float</span> dt)</span> &#123;</span><br><span class="line">  f-&gt;angle = f-&gt;alpha * (f-&gt;angle + gyro_rate * dt)</span><br><span class="line">           + (<span class="number">1</span> - f-&gt;alpha) * accel_angle;</span><br><span class="line">  <span class="keyword">return</span> f-&gt;angle;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="α-取值指南"><a href="#α-取值指南" class="headerlink" title="α 取值指南"></a>α 取值指南</h3><table>
+<thead>
+<tr>
+<th>alpha</th>
+<th>特点</th>
+<th>适用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.99</td>
+<td>非常信任陀螺仪，响应慢</td>
+<td>高帧率运动</td>
+</tr>
+<tr>
+<td>0.98</td>
+<td>平衡点</td>
+<td><strong>大多数情况</strong></td>
+</tr>
+<tr>
+<td>0.95</td>
+<td>更依赖加速度计，响应快</td>
+<td>低速静态姿态</td>
+</tr>
+</tbody></table>
+<h3 id="C-语言完整实现"><a href="#C-语言完整实现" class="headerlink" title="C 语言完整实现"></a>C 语言完整实现</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 互补滤波 + 角度归一化 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PI  3.14159265f</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> RAD2DEG(x)  ((x) * 180.0f / PI)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> alpha;       <span class="comment">// 权重系数</span></span><br><span class="line">  <span class="type">float</span> dt;          <span class="comment">// 采样周期 (s)</span></span><br><span class="line">  <span class="type">float</span> pitch, roll; <span class="comment">// 输出角度</span></span><br><span class="line">&#125; ComplementaryFilter;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">CompFilter_Init</span><span class="params">(ComplementaryFilter *f, <span class="type">float</span> alpha, <span class="type">float</span> dt)</span> &#123;</span><br><span class="line">  f-&gt;alpha = alpha;</span><br><span class="line">  f-&gt;dt = dt;</span><br><span class="line">  f-&gt;pitch = <span class="number">0</span>;</span><br><span class="line">  f-&gt;roll = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">CompFilter_Update</span><span class="params">(ComplementaryFilter *f,</span></span><br><span class="line"><span class="params">    <span class="type">float</span> ax, <span class="type">float</span> ay, <span class="type">float</span> az,</span></span><br><span class="line"><span class="params">    <span class="type">float</span> gx, <span class="type">float</span> gy, <span class="type">float</span> gz)</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 加速度计算角度 */</span></span><br><span class="line">  <span class="type">float</span> accel_pitch = atan2f(-ax, sqrtf(ay * ay + az * az));</span><br><span class="line">  <span class="type">float</span> accel_roll  = atan2f(ay, az);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 互补滤波 */</span></span><br><span class="line">  f-&gt;pitch = f-&gt;alpha * (f-&gt;pitch + gx * f-&gt;dt)</span><br><span class="line">           + (<span class="number">1</span> - f-&gt;alpha) * accel_pitch;</span><br><span class="line">  f-&gt;roll  = f-&gt;alpha * (f-&gt;roll  + gy * f-&gt;dt)</span><br><span class="line">           + (<span class="number">1</span> - f-&gt;alpha) * accel_roll;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用 */</span></span><br><span class="line">ComplementaryFilter cf;</span><br><span class="line">CompFilter_Init(&amp;cf, <span class="number">0.98f</span>, <span class="number">0.004f</span>);  <span class="comment">// 250Hz 采样</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">  MPU6050_Read(&amp;mpu);</span><br><span class="line">  CompFilter_Update(&amp;cf,</span><br><span class="line">    mpu.ax, mpu.ay, mpu.az,</span><br><span class="line">    mpu.gx, mpu.gy, mpu.gz);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Pitch=%.1f  Roll=%.1f\r\n&quot;</span>,</span><br><span class="line">    RAD2DEG(cf.pitch), RAD2DEG(cf.roll));</span><br><span class="line">  HAL_Delay(<span class="number">4</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、卡尔曼滤波"><a href="#六、卡尔曼滤波" class="headerlink" title="六、卡尔曼滤波"></a>六、卡尔曼滤波</h2><h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>卡尔曼滤波不是”滤掉噪声”，而是<strong>动态估计最可能的状态</strong>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">预测：                  更新：</span><br><span class="line">x̂ₖ = A·x̂ₖ₋₁ + B·uₖ    Kₖ = Pₖ·Hᵀ·(H·Pₖ·Hᵀ + R)⁻¹</span><br><span class="line">Pₖ = A·Pₖ₋₁·Aᵀ + Q     x̂ₖ = x̂ₖ + Kₖ·(zₖ - H·x̂ₖ)</span><br><span class="line">                        Pₖ = (I - Kₖ·H)·Pₖ</span><br></pre></td></tr></table></figure>
+
+<p>看起来复杂，拆成代码其实很清晰。</p>
+<h3 id="一维卡尔曼滤波（单变量）"><a href="#一维卡尔曼滤波（单变量）" class="headerlink" title="一维卡尔曼滤波（单变量）"></a>一维卡尔曼滤波（单变量）</h3><p>适合展<strong>示原理</strong>、<strong>温度平滑</strong>、<strong>电压跟踪</strong>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 一维卡尔曼滤波 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> Q;      <span class="comment">// 过程噪声协方差（系统稳定性）</span></span><br><span class="line">  <span class="type">float</span> R;      <span class="comment">// 测量噪声协方差（传感器信任度）</span></span><br><span class="line">  <span class="type">float</span> x;      <span class="comment">// 估计值</span></span><br><span class="line">  <span class="type">float</span> p;      <span class="comment">// 估计误差协方差</span></span><br><span class="line">  <span class="type">float</span> k;      <span class="comment">// 卡尔曼增益</span></span><br><span class="line">&#125; Kalman1D;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">Kalman1D_Init</span><span class="params">(Kalman1D *k, <span class="type">float</span> Q, <span class="type">float</span> R, <span class="type">float</span> init_x)</span> &#123;</span><br><span class="line">  k-&gt;Q = Q;</span><br><span class="line">  k-&gt;R = R;</span><br><span class="line">  k-&gt;x = init_x;</span><br><span class="line">  k-&gt;p = <span class="number">1.0f</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">Kalman1D_Update</span><span class="params">(Kalman1D *k, <span class="type">float</span> z)</span> &#123;</span><br><span class="line">  <span class="comment">/* 预测 */</span></span><br><span class="line">  k-&gt;p = k-&gt;p + k-&gt;Q;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 更新 */</span></span><br><span class="line">  k-&gt;k = k-&gt;p / (k-&gt;p + k-&gt;R);</span><br><span class="line">  k-&gt;x = k-&gt;x + k-&gt;k * (z - k-&gt;x);</span><br><span class="line">  k-&gt;p = (<span class="number">1</span> - k-&gt;k) * k-&gt;p;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> k-&gt;x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用 */</span></span><br><span class="line">Kalman1D kf;</span><br><span class="line">Kalman1D_Init(&amp;kf, <span class="number">0.001f</span>, <span class="number">0.1f</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> filtered_temp = Kalman1D_Update(&amp;kf, raw_temp);</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q-R-调参指南"><a href="#Q-R-调参指南" class="headerlink" title="Q&#x2F;R 调参指南"></a>Q&#x2F;R 调参指南</h3><table>
+<thead>
+<tr>
+<th>Q 增大</th>
+<th>R 增大</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>更信任测量值</td>
+<td>更信任预测值</td>
+</tr>
+<tr>
+<td>响应快、但有噪声</td>
+<td>平滑、但有延迟</td>
+</tr>
+<tr>
+<td>适合快速变化信号</td>
+<td>适合慢变信号</td>
+</tr>
+</tbody></table>
+<p><strong>经验公式：</strong> R &#x2F; Q ≈ 传感器信噪比的倒数</p>
+<h3 id="二维卡尔曼滤波（角度跟踪）"><a href="#二维卡尔曼滤波（角度跟踪）" class="headerlink" title="二维卡尔曼滤波（角度跟踪）"></a>二维卡尔曼滤波（角度跟踪）</h3><p>MPU6050 常用的 2 状态卡尔曼（角度 + 角速度偏差）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 二维卡尔曼（角度 + 陀螺偏置） */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">  <span class="type">float</span> Q_angle;    <span class="comment">// 角度过程噪声</span></span><br><span class="line">  <span class="type">float</span> Q_gyro;     <span class="comment">// 角速度偏置过程噪声</span></span><br><span class="line">  <span class="type">float</span> R_angle;    <span class="comment">// 角度测量噪声</span></span><br><span class="line">  <span class="type">float</span> angle;      <span class="comment">// 输出角度</span></span><br><span class="line">  <span class="type">float</span> bias;       <span class="comment">// 陀螺偏置</span></span><br><span class="line">  <span class="type">float</span> P[<span class="number">2</span>][<span class="number">2</span>];    <span class="comment">// 协方差矩阵</span></span><br><span class="line">&#125; Kalman2D;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">Kalman2D_Init</span><span class="params">(Kalman2D *k)</span> &#123;</span><br><span class="line">  k-&gt;Q_angle = <span class="number">0.001f</span>;</span><br><span class="line">  k-&gt;Q_gyro  = <span class="number">0.003f</span>;</span><br><span class="line">  k-&gt;R_angle = <span class="number">0.03f</span>;</span><br><span class="line">  k-&gt;angle = <span class="number">0</span>;</span><br><span class="line">  k-&gt;bias  = <span class="number">0</span>;</span><br><span class="line">  k-&gt;P[<span class="number">0</span>][<span class="number">0</span>] = <span class="number">0</span>; k-&gt;P[<span class="number">0</span>][<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">  k-&gt;P[<span class="number">1</span>][<span class="number">0</span>] = <span class="number">0</span>; k-&gt;P[<span class="number">1</span>][<span class="number">1</span>] = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> <span class="title function_">Kalman2D_Update</span><span class="params">(Kalman2D *k, <span class="type">float</span> new_angle, <span class="type">float</span> gyro_rate, <span class="type">float</span> dt)</span> &#123;</span><br><span class="line">  <span class="comment">/* 预测 */</span></span><br><span class="line">  k-&gt;angle += dt * (gyro_rate - k-&gt;bias);</span><br><span class="line">  k-&gt;P[<span class="number">0</span>][<span class="number">0</span>] += dt * (dt * k-&gt;P[<span class="number">1</span>][<span class="number">1</span>] - k-&gt;P[<span class="number">0</span>][<span class="number">1</span>] - k-&gt;P[<span class="number">1</span>][<span class="number">0</span>] + k-&gt;Q_angle);</span><br><span class="line">  k-&gt;P[<span class="number">0</span>][<span class="number">1</span>] -= dt * k-&gt;P[<span class="number">1</span>][<span class="number">1</span>];</span><br><span class="line">  k-&gt;P[<span class="number">1</span>][<span class="number">0</span>] -= dt * k-&gt;P[<span class="number">1</span>][<span class="number">1</span>];</span><br><span class="line">  k-&gt;P[<span class="number">1</span>][<span class="number">1</span>] += k-&gt;Q_gyro * dt;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 更新 */</span></span><br><span class="line">  <span class="type">float</span> S = k-&gt;P[<span class="number">0</span>][<span class="number">0</span>] + k-&gt;R_angle;</span><br><span class="line">  <span class="type">float</span> K0 = k-&gt;P[<span class="number">0</span>][<span class="number">0</span>] / S;</span><br><span class="line">  <span class="type">float</span> K1 = k-&gt;P[<span class="number">1</span>][<span class="number">0</span>] / S;</span><br><span class="line"></span><br><span class="line">  <span class="type">float</span> y = new_angle - k-&gt;angle;</span><br><span class="line">  k-&gt;angle += K0 * y;</span><br><span class="line">  k-&gt;bias   += K1 * y;</span><br><span class="line"></span><br><span class="line">  <span class="type">float</span> P00_temp = k-&gt;P[<span class="number">0</span>][<span class="number">0</span>];</span><br><span class="line">  <span class="type">float</span> P01_temp = k-&gt;P[<span class="number">0</span>][<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">  k-&gt;P[<span class="number">0</span>][<span class="number">0</span>] -= K0 * P00_temp;</span><br><span class="line">  k-&gt;P[<span class="number">0</span>][<span class="number">1</span>] -= K0 * P01_temp;</span><br><span class="line">  k-&gt;P[<span class="number">1</span>][<span class="number">0</span>] -= K1 * P00_temp;</span><br><span class="line">  k-&gt;P[<span class="number">1</span>][<span class="number">1</span>] -= K1 * P01_temp;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> k-&gt;angle;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用：替代互补滤波 */</span></span><br><span class="line">Kalman2D kalman_pitch, kalman_roll;</span><br><span class="line">Kalman2D_Init(&amp;kalman_pitch);</span><br><span class="line">Kalman2D_Init(&amp;kalman_roll);</span><br><span class="line"></span><br><span class="line"><span class="type">float</span> pitch = Kalman2D_Update(&amp;kalman_pitch, accel_pitch, gyro_x, <span class="number">0.004f</span>);</span><br><span class="line"><span class="type">float</span> roll  = Kalman2D_Update(&amp;kalman_roll,  accel_roll,  gyro_y, <span class="number">0.004f</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="七、滤波器对比"><a href="#七、滤波器对比" class="headerlink" title="七、滤波器对比"></a>七、滤波器对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>滑动平均</th>
+<th>中值滤波</th>
+<th>一阶低通</th>
+<th>互补滤波</th>
+<th>卡尔曼滤波</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>计算量</td>
+<td>★☆☆☆☆</td>
+<td>★★★☆☆</td>
+<td>★★☆☆☆</td>
+<td>★★☆☆☆</td>
+<td>★★★★☆</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>中</td>
+<td>中</td>
+<td>极小</td>
+<td>小</td>
+<td>中</td>
+</tr>
+<tr>
+<td>延迟</td>
+<td>有</td>
+<td>有</td>
+<td>小</td>
+<td>小</td>
+<td>极小</td>
+</tr>
+<tr>
+<td>抗脉冲</td>
+<td>差</td>
+<td><strong>极好</strong></td>
+<td>一般</td>
+<td>一般</td>
+<td>好</td>
+</tr>
+<tr>
+<td>自适应</td>
+<td>否</td>
+<td>否</td>
+<td>否</td>
+<td>否</td>
+<td><strong>是</strong></td>
+</tr>
+<tr>
+<td>调参难度</td>
+<td>无</td>
+<td>无</td>
+<td>低</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>代码量</td>
+<td>15行</td>
+<td>20行</td>
+<td>8行</td>
+<td>20行</td>
+<td>50行</td>
+</tr>
+</tbody></table>
+<h2 id="八、选型决策树"><a href="#八、选型决策树" class="headerlink" title="八、选型决策树"></a>八、选型决策树</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">传感器读数有噪声？</span><br><span class="line">├─ 偶尔跳变（超声波/红外）</span><br><span class="line">│  └─ 中值滤波</span><br><span class="line">├─ 白噪声（ADC/温度）</span><br><span class="line">│  └─ 滑动平均 或 一阶低通</span><br><span class="line">├─ 融合多传感器（姿态/IMU）</span><br><span class="line">│  ├─ 算力有限 → 互补滤波</span><br><span class="line">│  └─ 算力充足 → 卡尔曼滤波</span><br><span class="line">└─ 需要跟踪动态系统</span><br><span class="line">   └─ 卡尔曼滤波</span><br></pre></td></tr></table></figure>
+
+<h2 id="九、实际案例：MPU6050-数据处理链"><a href="#九、实际案例：MPU6050-数据处理链" class="headerlink" title="九、实际案例：MPU6050 数据处理链"></a>九、实际案例：MPU6050 数据处理链</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">MPU6050 原始数据</span><br><span class="line">    ↓</span><br><span class="line">  低通滤波 (CONFIG寄存器, 硬件级)</span><br><span class="line">    ↓</span><br><span class="line">  滑动平均 (软件去抖, 窗口=3)</span><br><span class="line">    ↓</span><br><span class="line">  互补滤波 / 卡尔曼 (角度融合)</span><br><span class="line">    ↓</span><br><span class="line">  输出 Pitch/Roll</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 完整数据链 */</span></span><br><span class="line">LowPass lp_accel = &#123; .alpha = <span class="number">0.2f</span> &#125;;</span><br><span class="line">MovingAvg avg = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">Complementary comp = &#123; .alpha = <span class="number">0.98f</span>, .angle = <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">MPU_Process</span><span class="params">(<span class="type">float</span> ax, <span class="type">float</span> ay, <span class="type">float</span> az,</span></span><br><span class="line"><span class="params">                 <span class="type">float</span> gx, <span class="type">float</span> gy, <span class="type">float</span> gz, <span class="type">float</span> dt)</span> &#123;</span><br><span class="line">  <span class="comment">/* 1. 加速度计低通 */</span></span><br><span class="line">  ax = LowPass_Update(&amp;lp_accel, ax);</span><br><span class="line">  ay = LowPass_Update(&amp;lp_accel, ay);</span><br><span class="line">  az = LowPass_Update(&amp;lp_accel, az);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 2. 角度计算 */</span></span><br><span class="line">  <span class="type">float</span> accel_pitch = atan2f(-ax, sqrtf(ay*ay + az*az));</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 3. 滑动平均去抖 */</span></span><br><span class="line">  accel_pitch = MovingAvg_Update(&amp;avg, accel_pitch);</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* 4. 互补滤波融合 */</span></span><br><span class="line">  <span class="type">float</span> pitch = Complementary_Update(&amp;comp, gx, accel_pitch, dt);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>MPU6050 项目实践：<a href="/2025/10/20/STM32F103C8T6-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/">MPU6050 姿态传感器</a></li>
+<li>定时器 + PWM 基础：<a href="/2026/03/08/STM32-%E5%AE%9A%E6%97%B6%E5%99%A8%E8%AF%A6%E8%A7%A3-%E5%9F%BA%E7%A1%80-%E8%BE%93%E5%87%BA%E6%AF%94%E8%BE%83-%E8%BE%93%E5%85%A5%E6%8D%95%E8%8E%B7/">定时器详解</a></li>
+<li>了解 I2C 通信：<a href="/2025/10/11/STM32-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3-UART-I2C-SPI/">通信协议 UART · I2C · SPI</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://yujian.click">屿见</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://yujian.click/2025/10/21/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3-%E4%BB%8E%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2%E5%88%B0%E5%8D%A1%E5%B0%94%E6%9B%BC/">https://yujian.click/2025/10/21/%E5%B5%8C%E5%85%A5%E5%BC%8F%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95%E8%AF%A6%E8%A7%A3-%E4%BB%8E%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2%E5%88%B0%E5%8D%A1%E5%B0%94%E6%9B%BC/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://yujian.click" target="_blank">世海浮沉，于屿得见本真归处</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/STM32/">STM32</a><a class="post-meta__tags" href="/tags/%E6%BB%A4%E6%B3%A2%E7%AE%97%E6%B3%95/">滤波算法</a></div><div class="post-share"><div class="social-share" data-image="https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related  no-desc" href="/2025/11/09/STM32-%E6%97%B6%E9%92%9F%E6%A0%91%E4%B8%8E%E6%97%B6%E5%BA%8F%E8%AF%A6%E8%A7%A3/" title="STM32 时钟树与系统时序详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26227.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">STM32 时钟树与系统时序详解</div></div></div></a><a class="pagination-related  no-desc" href="/2025/10/20/STM32-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26452.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related no-desc" href="/2025/10/20/STM32-MPU6050%E9%A1%B9%E7%9B%AE%E5%AE%9E%E8%B7%B5/" title="STM32F103C8T6 + MPU6050 姿态传感器项目实践"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26452.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-20</div><div class="info-item-2">STM32F103C8T6 + MPU6050 姿态传感器项目实践</div></div></div></a><a class="pagination-related no-desc" href="/2025/10/12/STM32-PWM%E5%91%BC%E5%90%B8%E7%81%AF/" title="STM32 PWM 呼吸灯"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/23493.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-12</div><div class="info-item-2">STM32 PWM 呼吸灯</div></div></div></a><a class="pagination-related no-desc" href="/2025/11/26/STM32-%E4%B8%AD%E6%96%AD%E7%B3%BB%E7%BB%9F-NVIC-EXTI%E8%AF%A6%E8%A7%A3/" title="STM32 中断系统 NVIC 与 EXTI 详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26290.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-26</div><div class="info-item-2">STM32 中断系统 NVIC 与 EXTI 详解</div></div></div></a><a class="pagination-related no-desc" href="/2025/11/09/STM32-%E6%97%B6%E9%92%9F%E6%A0%91%E4%B8%8E%E6%97%B6%E5%BA%8F%E8%AF%A6%E8%A7%A3/" title="STM32 时钟树与系统时序详解"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/26227.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-09</div><div class="info-item-2">STM32 时钟树与系统时序详解</div></div></div></a><a class="pagination-related no-desc" href="/2026/03/17/STM32-ADC%E6%A8%A1%E6%95%B0%E8%BD%AC%E6%8D%A2%E8%AF%A6%E8%A7%A3/" title="STM32 ADC 模数转换详解 单通道 多通道 DMA"><img class="cover" src="https://4kwallpapers.com/images/walls/thumbs_3t/19009.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-17</div><div class="info-item-2">STM32 ADC 模数转换详解 单通道 多通道 DMA</div></div></div></a><a class="pagination-related no-desc" href="/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/" title="STM32F103C8T6 学习路线总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-14</div><div class="info-item-2">STM32F103C8T6 学习路线总结</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">屿见</div><div class="author-info-description">屿见的博客，记录生活点滴，分享技术经验。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/resheep"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%BB%A4%E6%B3%A2"><span class="toc-number">1.</span> <span class="toc-text">为什么需要滤波</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%BB%91%E5%8A%A8%E5%B9%B3%E5%9D%87%E6%BB%A4%E6%B3%A2"><span class="toc-number">2.</span> <span class="toc-text">一、滑动平均滤波</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%AD%E5%80%BC%E6%BB%A4%E6%B3%A2"><span class="toc-number">3.</span> <span class="toc-text">二、中值滤波</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E9%98%B6%E4%BD%8E%E9%80%9A%E6%BB%A4%E6%B3%A2%EF%BC%88RC-%E6%BB%A4%E6%B3%A2%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">三、一阶低通滤波（RC 滤波）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%88%AA%E6%AD%A2%E9%A2%91%E7%8E%87%E8%AE%A1%E7%AE%97"><span class="toc-number">4.1.</span> <span class="toc-text">截止频率计算</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%AB%98%E9%80%9A%E6%BB%A4%E6%B3%A2"><span class="toc-number">5.</span> <span class="toc-text">四、高通滤波</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BA%92%E8%A1%A5%E6%BB%A4%E6%B3%A2"><span class="toc-number">6.</span> <span class="toc-text">五、互补滤波</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%CE%B1-%E5%8F%96%E5%80%BC%E6%8C%87%E5%8D%97"><span class="toc-number">6.2.</span> <span class="toc-text">α 取值指南</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#C-%E8%AF%AD%E8%A8%80%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">6.3.</span> <span class="toc-text">C 语言完整实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2"><span class="toc-number">7.</span> <span class="toc-text">六、卡尔曼滤波</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">7.1.</span> <span class="toc-text">核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E7%BB%B4%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%EF%BC%88%E5%8D%95%E5%8F%98%E9%87%8F%EF%BC%89"><span class="toc-number">7.2.</span> <span class="toc-text">一维卡尔曼滤波（单变量）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q-R-%E8%B0%83%E5%8F%82%E6%8C%87%E5%8D%97"><span class="toc-number">7.3.</span> <span class="toc-text">Q&#x2F;R 调参指南</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E7%BB%B4%E5%8D%A1%E5%B0%94%E6%9B%BC%E6%BB%A4%E6%B3%A2%EF%BC%88%E8%A7%92%E5%BA%A6%E8%B7%9F%E8%B8%AA%EF%BC%89"><span class="toc-number">7.4.</span> <span class="toc-text">二维卡尔曼滤波（角度跟踪）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%BB%A4%E6%B3%A2%E5%99%A8%E5%AF%B9%E6%AF%94"><span class="toc-number">8.</span> <span class="toc-text">七、滤波器对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">9.</span> <span class="toc-text">八、选型决策树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%AE%9E%E9%99%85%E6%A1%88%E4%BE%8B%EF%BC%9AMPU6050-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E9%93%BE"><span class="toc-number">10.</span> <span class="toc-text">九、实际案例：MPU6050 数据处理链</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">11.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/05/20/%E8%88%B5%E6%9C%BA%E4%BA%91%E5%8F%B0%E6%9C%BA%E6%A2%B0%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/" title="舵机云台机械结构设计思路"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/23493.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="舵机云台机械结构设计思路"/></a><div class="content"><a class="title" href="/2026/05/20/%E8%88%B5%E6%9C%BA%E4%BA%91%E5%8F%B0%E6%9C%BA%E6%A2%B0%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF/" title="舵机云台机械结构设计思路">舵机云台机械结构设计思路</a><time datetime="2026-05-20T10:00:00.000Z" title="发表于 2026-05-20 18:00:00">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/" title="SLAM路径规划初学思路"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/15153.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="SLAM路径规划初学思路"/></a><div class="content"><a class="title" href="/2026/05/20/SLAM%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92%E5%88%9D%E5%AD%A6%E6%80%9D%E8%B7%AF/" title="SLAM路径规划初学思路">SLAM路径规划初学思路</a><time datetime="2026-05-19T22:15:19.000Z" title="发表于 2026-05-20 06:15:19">2026-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/8128.jpeg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于ROS巡航第一次技术尝试"/></a><div class="content"><a class="title" href="/2026/04/20/ROS%E5%B7%A1%E8%88%AA%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8A%80%E6%9C%AF%E5%B0%9D%E8%AF%95/" title="基于ROS巡航第一次技术尝试">基于ROS巡航第一次技术尝试</a><time datetime="2026-04-20T14:08:52.000Z" title="发表于 2026-04-20 22:08:52">2026-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/04/14/STM32-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E6%80%BB%E7%BB%93/" title="STM32F103C8T6 学习路线总结">STM32F103C8T6 学习路线总结</a><time datetime="2026-04-14T08:00:00.000Z" title="发表于 2026-04-14 16:00:00">2026-04-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础"><img src="https://4kwallpapers.com/images/walls/thumbs_3t/14936.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ROS2 节点 话题 通信与服务基础"/></a><div class="content"><a class="title" href="/2026/03/22/ROS2-%E8%8A%82%E7%82%B9-%E8%AF%9D%E9%A2%98-%E9%80%9A%E4%BF%A1%E5%9F%BA%E7%A1%80/" title="ROS2 节点 话题 通信与服务基础">ROS2 节点 话题 通信与服务基础</a><time datetime="2026-03-22T08:00:00.000Z" title="发表于 2026-03-22 16:00:00">2026-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By 屿见</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><div class="js-pjax"><script>(() => {
+  const applyThemeDefaultsConfig = theme => {
+    if (theme === 'dark-mode') {
+      Chart.defaults.color = "rgba(255, 255, 255, 0.8)"
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.2)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    } else {
+      Chart.defaults.color = "rgba(0, 0, 0, 0.8)"
+      Chart.defaults.borderColor = "rgba(0, 0, 0, 0.1)"
+      Chart.defaults.scale.ticks.backdropColor = "transparent"
+    }
+  }
+
+  // Recursively traverse the config object and automatically apply theme-specific color schemes
+  const applyThemeConfig = (obj, theme) => {
+    if (typeof obj !== 'object' || obj === null) return
+
+    Object.keys(obj).forEach(key => {
+      const value = obj[key]
+      // If the property is an object and has theme-specific options, apply them
+      if (typeof value === 'object' && value !== null) {
+        if (value[theme]) {
+          obj[key] = value[theme] // Apply the value for the current theme
+        } else {
+          // Recursively process child objects
+          applyThemeConfig(value, theme)
+        }
+      }
+    })
+  }
+
+  const runChartJS = ele => {
+    window.loadChartJS = true
+
+    Array.from(ele).forEach((item, index) => {
+      const chartSrc = item.firstElementChild
+      const chartID = item.getAttribute('data-chartjs-id') || ('chartjs-' + index) // Use custom ID or default ID
+      const width = item.getAttribute('data-width')
+      const existingCanvas = document.getElementById(chartID)
+
+      // If a canvas already exists, remove it to avoid rendering duplicates
+      if (existingCanvas) {
+          existingCanvas.parentNode.remove()
+      }
+
+      const chartDefinition = chartSrc.textContent
+      const canvas = document.createElement('canvas')
+      canvas.id = chartID
+
+      const div = document.createElement('div')
+      div.className = 'chartjs-wrap'
+
+      if (width) {
+        div.style.width = width
+      }
+
+      div.appendChild(canvas)
+      chartSrc.insertAdjacentElement('afterend', div)
+
+      const ctx = document.getElementById(chartID).getContext('2d')
+
+      const config = JSON.parse(chartDefinition)
+
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark-mode' : 'light-mode'
+
+      // Set default styles (initial setup)
+      applyThemeDefaultsConfig(theme)
+
+      // Automatically traverse the config and apply dual-mode color schemes
+      applyThemeConfig(config, theme)
+
+      new Chart(ctx, config)
+    })
+  }
+
+  const loadChartJS = () => {
+    const chartJSEle = document.querySelectorAll('#article-container .chartjs-container')
+    if (chartJSEle.length === 0) return
+
+    window.loadChartJS ? runChartJS(chartJSEle) : btf.getScript('https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js').then(() => runChartJS(chartJSEle))
+  }
+
+  // Listen for theme change events
+  btf.addGlobalFn('themeChange', loadChartJS, 'chartjs')
+  btf.addGlobalFn('encrypt', loadChartJS, 'chartjs')
+
+  window.pjax ? loadChartJS() : document.addEventListener('DOMContentLoaded', loadChartJS)
+})()</script></div><script src="/js/per-page-bg.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>
+    function butterfly_categories_card_injector_config(){
+      var parent_div_git = document.getElementById('recent-posts');
+      var item_html = '<style>li.categoryBar-list-item{width:32.3%;}.categoryBar-list{max-height: 190px;overflow:auto;}.categoryBar-list::-webkit-scrollbar{width:0!important}@media screen and (max-width: 650px){.categoryBar-list{max-height: 160px;}}</style><div class="recent-post-item" style="height:auto;width:100%;padding:0px;"><div id="categoryBar"><ul class="categoryBar-list"><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/14933.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/">嵌入式</a><span class="categoryBar-list-count">15</span><span class="categoryBar-list-descr">STM32/ROS/嵌入式实战</span></li><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/10733.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/学习笔记/">学习笔记</a><span class="categoryBar-list-count">13</span><span class="categoryBar-list-descr">学习笔记与总结</span></li><li class="categoryBar-list-item" style="background:url(https://4kwallpapers.com/images/walls/thumbs_3t/14063.jpg);"> <a class="categoryBar-list-link" href="categories/嵌入式/机械设计/">机械设计</a><span class="categoryBar-list-count">1</span><span class="categoryBar-list-descr">机械结构设计</span></li></ul></div></div>';
+      console.log('已挂载butterfly_categories_card')
+      parent_div_git.insertAdjacentHTML("afterbegin",item_html)
+      }
+    if( document.getElementById('recent-posts') && (location.pathname ==='/'|| '/' ==='all')){
+    butterfly_categories_card_injector_config()
+    }
+  </script><!-- hexo injector body_end end --></body></html>
