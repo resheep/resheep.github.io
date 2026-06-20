@@ -3,6 +3,56 @@
   animation: none !important;
 }
 
+/* ========== 确保侧栏在右侧（屏幕 > 900px 时） ========== */
+@media screen and (min-width: 901px) {
+  .layout {
+    flex-direction: row !important;
+  }
+}
+
+/* ========== 站点信息美化 ========== */
+/* 侧边栏网站信息卡片 */
+.card-webinfo .webinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 6px;
+}
+.card-webinfo .webinfo-item {
+  display: flex !important;
+  align-items: center;
+  padding: 10px 14px !important;
+  border-radius: 10px;
+  background: rgba(255,255,255,.5);
+  transition: background .25s, transform .25s;
+}
+.card-webinfo .webinfo-item:hover {
+  background: rgba(255,255,255,.8);
+  transform: translateX(3px);
+}
+.card-webinfo .webinfo-item div:first-child {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-webinfo .webinfo-item div:last-child {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2D3D;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 文章计数徽标 */
+.card-webinfo .webinfo-item .item-count {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ========== 默认整页背景 ========== */
 #web_bg {
   background: url(/img/index-banner.jpg) center/cover no-repeat fixed;
