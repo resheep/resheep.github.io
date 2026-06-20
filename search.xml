@@ -13,8 +13,6 @@
       
       <categories>
           
-          <category> 嵌入式 </category>
-          
           <category> 机械设计 </category>
           
       </categories>
@@ -43,8 +41,6 @@
       <categories>
           
           <category> 嵌入式 </category>
-          
-          <category> 学习笔记 </category>
           
       </categories>
       
@@ -96,8 +92,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -122,8 +116,6 @@
       <categories>
           
           <category> 嵌入式 </category>
-          
-          <category> 学习笔记 </category>
           
       </categories>
       
@@ -150,8 +142,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -177,8 +167,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -203,8 +191,6 @@
       <categories>
           
           <category> 嵌入式 </category>
-          
-          <category> 学习笔记 </category>
           
       </categories>
       
@@ -233,8 +219,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -260,8 +244,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -286,8 +268,6 @@
       <categories>
           
           <category> 嵌入式 </category>
-          
-          <category> 学习笔记 </category>
           
       </categories>
       
@@ -316,8 +296,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -345,8 +323,6 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
@@ -371,8 +347,6 @@
       <categories>
           
           <category> 嵌入式 </category>
-          
-          <category> 学习笔记 </category>
           
       </categories>
       
@@ -399,14 +373,37 @@
           
           <category> 嵌入式 </category>
           
-          <category> 学习笔记 </category>
-          
       </categories>
       
       
         <tags>
             
             <tag> STM32 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>排序算法学习</title>
+      <link href="/2025/09/20/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%AD%A6%E4%B9%A0/"/>
+      <url>/2025/09/20/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%AD%A6%E4%B9%A0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>排序是数据结构与算法的基石。无论是应对面试、刷题，还是实际工程开发，掌握常见排序算法的原理与实现都是C语言学习者的必修课。</p><p>本文将从最基础的<strong>冒泡排序</strong>讲起，逐步过渡到<strong>选择排序</strong>、<strong>插入排序</strong>，最后深入讲解面试高频考点<strong>快速排序</strong>。每种算法都配有详细的思路图解、纯C语言实现代码以及优化技巧，文末还附有综合对比表格，建议收藏反复阅读！</p><hr><h2 id="一、冒泡排序（Bubble-Sort）"><a href="#一、冒泡排序（Bubble-Sort）" class="headerlink" title="一、冒泡排序（Bubble Sort）"></a>一、冒泡排序（Bubble Sort）</h2><h3 id="1-核心思想"><a href="#1-核心思想" class="headerlink" title="1. 核心思想"></a>1. 核心思想</h3><blockquote><p>重复遍历数组，依次比较<strong>相邻元素</strong>，如果顺序错误就交换。每一轮遍历都会将当前未排序部分的<strong>最大值”冒泡”到末尾</strong>。</p></blockquote><h3 id="2-C语言实现（含优化）"><a href="#2-C语言实现（含优化）" class="headerlink" title="2. C语言实现（含优化）"></a>2. C语言实现（含优化）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">bubbleSort</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n - <span class="number">1</span>; i++) &#123;</span><br><span class="line">        <span class="type">int</span> swapped = <span class="number">0</span>; <span class="comment">// 优化：标记本轮是否发生交换</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; n - <span class="number">1</span> - i; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[j] &gt; arr[j + <span class="number">1</span>]) &#123;</span><br><span class="line">                <span class="type">int</span> temp = arr[j];</span><br><span class="line">                arr[j] = arr[j + <span class="number">1</span>];</span><br><span class="line">                arr[j + <span class="number">1</span>] = temp;</span><br><span class="line">                swapped = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!swapped) <span class="keyword">break</span>; <span class="comment">// 若本轮无交换，说明已有序，提前退出</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="3-关键点"><a href="#3-关键点" class="headerlink" title="3. 关键点"></a>3. 关键点</h3><ul><li><strong>时间复杂度</strong>：最优 O(n)（已有序时），最差&#x2F;平均 O(n²)</li><li><strong>空间复杂度</strong>：O(1)</li><li><strong>稳定性</strong>：✅ 稳定</li><li><strong>优化点</strong>：加入 <code>swapped</code> 标志位，避免对已有序数组做无效遍历</li></ul><hr><h2 id="二、选择排序（Selection-Sort）"><a href="#二、选择排序（Selection-Sort）" class="headerlink" title="二、选择排序（Selection Sort）"></a>二、选择排序（Selection Sort）</h2><h3 id="1-核心思想-1"><a href="#1-核心思想-1" class="headerlink" title="1. 核心思想"></a>1. 核心思想</h3><blockquote><p>每轮从未排序区间中找到<strong>最小值</strong>，将其与未排序区间的第一个元素交换位置。</p></blockquote><h3 id="2-C语言实现"><a href="#2-C语言实现" class="headerlink" title="2. C语言实现"></a>2. C语言实现</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">selectionSort</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n - <span class="number">1</span>; i++) &#123;</span><br><span class="line">        <span class="type">int</span> minIdx = i;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = i + <span class="number">1</span>; j &lt; n; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (arr[j] &lt; arr[minIdx]) &#123;</span><br><span class="line">                minIdx = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (minIdx != i) &#123;</span><br><span class="line">            <span class="type">int</span> temp = arr[i];</span><br><span class="line">            arr[i] = arr[minIdx];</span><br><span class="line">            arr[minIdx] = temp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="3-关键点-1"><a href="#3-关键点-1" class="headerlink" title="3. 关键点"></a>3. 关键点</h3><ul><li><strong>时间复杂度</strong>：始终为 O(n²)（即使已有序也无法提前终止）</li><li><strong>空间复杂度</strong>：O(1)</li><li><strong>稳定性</strong>：❌ 不稳定（例如 <code>[5, 5, 3]</code> 第一轮交换后两个5的相对顺序被破坏）</li><li><strong>特点</strong>：交换次数最少（最多 n-1 次），适合交换代价高的场景</li></ul><hr><h2 id="三、插入排序（Insertion-Sort）"><a href="#三、插入排序（Insertion-Sort）" class="headerlink" title="三、插入排序（Insertion Sort）"></a>三、插入排序（Insertion Sort）</h2><h3 id="1-核心思想-2"><a href="#1-核心思想-2" class="headerlink" title="1. 核心思想"></a>1. 核心思想</h3><blockquote><p>类似打扑克牌整理手牌：将未排序元素逐个<strong>插入</strong>到已排序序列的正确位置。</p></blockquote><h3 id="2-C语言实现-1"><a href="#2-C语言实现-1" class="headerlink" title="2. C语言实现"></a>2. C语言实现</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">insertionSort</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; i++) &#123;</span><br><span class="line">        <span class="type">int</span> key = arr[i];</span><br><span class="line">        <span class="type">int</span> j = i - <span class="number">1</span>;</span><br><span class="line">        <span class="comment">// 将比key大的元素逐个后移</span></span><br><span class="line">        <span class="keyword">while</span> (j &gt;= <span class="number">0</span> &amp;&amp; arr[j] &gt; key) &#123;</span><br><span class="line">            arr[j + <span class="number">1</span>] = arr[j];</span><br><span class="line">            j--;</span><br><span class="line">        &#125;</span><br><span class="line">        arr[j + <span class="number">1</span>] = key;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="3-关键点-2"><a href="#3-关键点-2" class="headerlink" title="3. 关键点"></a>3. 关键点</h3><ul><li><strong>时间复杂度</strong>：最优 O(n)，最差&#x2F;平均 O(n²)</li><li><strong>空间复杂度</strong>：O(1)</li><li><strong>稳定性</strong>：✅ 稳定</li><li><strong>实战价值</strong>：在小规模数据（n &lt; 50）或近乎有序的数据上表现优异，常作为高级排序算法的子过程使用</li></ul><hr><h2 id="四、快速排序（Quick-Sort）⭐重点"><a href="#四、快速排序（Quick-Sort）⭐重点" class="headerlink" title="四、快速排序（Quick Sort）⭐重点"></a>四、快速排序（Quick Sort）⭐重点</h2><h3 id="1-核心思想-3"><a href="#1-核心思想-3" class="headerlink" title="1. 核心思想"></a>1. 核心思想</h3><blockquote><p><strong>分治法</strong>：选一个基准值（pivot），将数组分为”小于pivot”和”大于pivot”两部分，然后递归处理两个子数组。</p></blockquote><h3 id="2-C语言实现（Lomuto分区方案）"><a href="#2-C语言实现（Lomuto分区方案）" class="headerlink" title="2. C语言实现（Lomuto分区方案）"></a>2. C语言实现（Lomuto分区方案）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 分区函数</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">partition</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> low, <span class="type">int</span> high)</span> &#123;</span><br><span class="line">    <span class="type">int</span> pivot = arr[high]; <span class="comment">// 选最后一个元素为基准</span></span><br><span class="line">    <span class="type">int</span> i = low - <span class="number">1</span>;       <span class="comment">// i指向小于区域的右边界</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = low; j &lt; high; j++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (arr[j] &lt;= pivot) &#123;</span><br><span class="line">            i++;</span><br><span class="line">            <span class="type">int</span> temp = arr[i];</span><br><span class="line">            arr[i] = arr[j];</span><br><span class="line">            arr[j] = temp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 将pivot放到正确位置</span></span><br><span class="line">    <span class="type">int</span> temp = arr[i + <span class="number">1</span>];</span><br><span class="line">    arr[i + <span class="number">1</span>] = arr[high];</span><br><span class="line">    arr[high] = temp;</span><br><span class="line">    <span class="keyword">return</span> i + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 快速排序主函数</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">quickSort</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> low, <span class="type">int</span> high)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (low &lt; high) &#123;</span><br><span class="line">        <span class="type">int</span> pi = partition(arr, low, high);</span><br><span class="line">        quickSort(arr, low, pi - <span class="number">1</span>);</span><br><span class="line">        quickSort(arr, pi + <span class="number">1</span>, high);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用方式：quickSort(arr, 0, n - 1);</span></span><br></pre></td></tr></table></figure><h3 id="3-关键优化策略"><a href="#3-关键优化策略" class="headerlink" title="3. 关键优化策略"></a>3. 关键优化策略</h3><table><thead><tr><th>优化手段</th><th>说明</th></tr></thead><tbody><tr><td><strong>三数取中法</strong></td><td>取首、中、尾三个数的中位数作为pivot，避免最坏情况</td></tr><tr><td><strong>小数组切换插入排序</strong></td><td>当子数组长度 &lt; 10 时改用插入排序，减少递归开销</td></tr><tr><td><strong>尾递归优化</strong></td><td>先递归较小的分区，较大的分区用循环代替，降低栈深度</td></tr></tbody></table><h3 id="4-复杂度分析"><a href="#4-复杂度分析" class="headerlink" title="4. 复杂度分析"></a>4. 复杂度分析</h3><ul><li><strong>平均时间复杂度</strong>：O(n log n)</li><li><strong>最差时间复杂度</strong>：O(n²)（每次pivot恰好是最大&#x2F;最小值）</li><li><strong>空间复杂度</strong>：O(log n)（递归栈）</li><li><strong>稳定性</strong>：❌ 不稳定</li></ul><hr><h2 id="五、四大排序算法综合对比"><a href="#五、四大排序算法综合对比" class="headerlink" title="五、四大排序算法综合对比"></a>五、四大排序算法综合对比</h2><table><thead><tr><th>算法</th><th>平均时间</th><th>最优时间</th><th>最差时间</th><th>空间</th><th>稳定性</th><th>适用场景</th></tr></thead><tbody><tr><td>冒泡排序</td><td>O(n²)</td><td>O(n)</td><td>O(n²)</td><td>O(1)</td><td>✅</td><td>教学、极小数据量</td></tr><tr><td>选择排序</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>❌</td><td>交换代价高的场景</td></tr><tr><td>插入排序</td><td>O(n²)</td><td>O(n)</td><td>O(n²)</td><td>O(1)</td><td>✅</td><td>小数据、近乎有序</td></tr><tr><td>快速排序</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td><td>❌</td><td><strong>通用大规模数据</strong></td></tr></tbody></table><blockquote><p>💡 <strong>实践建议</strong>：实际工程中优先使用 <code>qsort()</code>（C标准库）或手写快排+插入排序混合版本；面试中务必能手写快排并解释分区逻辑。</p></blockquote><hr><h2 id="六、测试验证代码"><a href="#六、测试验证代码" class="headerlink" title="六、测试验证代码"></a>六、测试验证代码</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">printArray</span><span class="params">(<span class="type">int</span> arr[], <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d &quot;</span>, arr[i]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> arr[] = &#123;<span class="number">64</span>, <span class="number">34</span>, <span class="number">25</span>, <span class="number">12</span>, <span class="number">22</span>, <span class="number">11</span>, <span class="number">90</span>&#125;;</span><br><span class="line">    <span class="type">int</span> n = <span class="keyword">sizeof</span>(arr) / <span class="keyword">sizeof</span>(arr[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;原始数组: &quot;</span>);</span><br><span class="line">    printArray(arr, n);</span><br><span class="line"></span><br><span class="line">    quickSort(arr, <span class="number">0</span>, n - <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;排序结果: &quot;</span>);</span><br><span class="line">    printArray(arr, n);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><strong>输出：</strong></p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">原始数组: 64 34 25 12 22 11 90</span><br><span class="line">排序结果: 11 12 22 25 34 64 90</span><br></pre></td></tr></table></figure><hr><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul><li><strong>入门三件套</strong>（冒泡、选择、插入）重在理解排序的基本思想和稳定性概念</li><li><strong>快速排序</strong>是分治思想的经典应用，也是面试和实战中最重要的一种排序算法</li><li>没有”最好”的排序算法，只有”最适合”的场景——理解每种算法的优劣才能做出正确选型</li></ul><blockquote><p>📝 <strong>动手练习建议</strong>：尝试实现归并排序和堆排序，并用随机生成的万级数据实测各算法耗时，体感差异会让你记忆更深刻！</p></blockquote><hr>]]></content>
+      
+      
+      <categories>
+          
+          <category> 算法学习 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> c </tag>
             
         </tags>
       
