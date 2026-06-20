@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 540" font-family="'Segoe UI', 'PingFang SC', sans-serif">
+  <defs>
+    <radialGradient id="rg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6366f1" stop-opacity=".4"/><stop offset="100%" stop-color="#6366f1" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#06b6d4" stop-opacity=".35"/><stop offset="100%" stop-color="#06b6d4" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#10b981" stop-opacity=".35"/><stop offset="100%" stop-color="#10b981" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f59e0b" stop-opacity=".35"/><stop offset="100%" stop-color="#f59e0b" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg5" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ef4444" stop-opacity=".35"/><stop offset="100%" stop-color="#ef4444" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg6" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#14b8a6" stop-opacity=".35"/><stop offset="100%" stop-color="#14b8a6" stop-opacity=".05"/></radialGradient>
+    <radialGradient id="rg7" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a855f7" stop-opacity=".35"/><stop offset="100%" stop-color="#a855f7" stop-opacity=".05"/></radialGradient>
+    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/></filter>
+  </defs>
+
+  <rect width="600" height="540" fill="#f8fafc" rx="16"/>
+
+  <!-- 标题 -->
+  <text x="300" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#1e293b">📊 标签雷达图</text>
+  <text x="300" y="50" text-anchor="middle" font-size="11" fill="#94a3b8">共 7 个标签 · 18 篇文章</text>
+
+  <!-- ========== 雷达图主体 ========== -->
+  <g transform="translate(300,290)">
+    <!-- 五层网格圆 -->
+    <circle cx="0" cy="0" r="200" fill="none" stroke="#e2e8f0" stroke-width="1.2"/>
+    <circle cx="0" cy="0" r="160" fill="none" stroke="#e2e8f0" stroke-width=".8"/>
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#e2e8f0" stroke-width=".8"/>
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#e2e8f0" stroke-width=".8"/>
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#e2e8f0" stroke-width=".8"/>
+
+    <!-- 7 条轴线 (360/7 ≈ 51.4°) -->
+    <!-- 标签数据：STM32:10, ROS:3, 滤波算法:2, 电机驱动:1, C:1, 舵机:1, 云台:1 -->
+    <!-- 最大值为 10，半径 200px，半径比例 = 值/10 × 200 -->
+    <!-- 底部开始逆时针 -->
+
+    <!-- 轴 1: STM32 (10篇) - 0° -->
+    <line x1="0" y1="0" x2="0" y2="-200" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 2: ROS (3篇) - 51.4° -->
+    <line x1="0" y1="0" x2="156" y2="-125" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 3: 滤波算法 (2篇) - 102.8° -->
+    <line x1="0" y1="0" x2="195" y2="44" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 4: 电机驱动 (1篇) - 154.2° -->
+    <line x1="0" y1="0" x2="87" y2="180" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 5: C (1篇) - 205.6° -->
+    <line x1="0" y1="0" x2="-87" y2="180" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 6: 舵机 (1篇) - 257° -->
+    <line x1="0" y1="0" x2="-195" y2="44" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 轴 7: 云台 (1篇) - 308.4° -->
+    <line x1="0" y1="0" x2="-156" y2="-125" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- 扇形填充区域（使用 polygon 形成扇形） -->
+    <!-- STM32(n=10) → ROS(n=3) -->
+    <polygon points="0,0 0,-200 156,-125" fill="#6366f1" opacity=".35" stroke="#6366f1" stroke-width="1.5"/>
+    <!-- ROS(n=3) → 滤波算法(n=2) -->
+    <polygon points="0,0 156,-125 195,44" fill="#06b6d4" opacity=".3" stroke="#06b6d4" stroke-width="1.5"/>
+    <!-- 滤波算法(n=2) → 电机驱动(n=1) -->
+    <polygon points="0,0 195,44 87,180" fill="#10b981" opacity=".3" stroke="#10b981" stroke-width="1.5"/>
+    <!-- 电机驱动(n=1) → C(n=1) -->
+    <polygon points="0,0 87,180 -87,180" fill="#f59e0b" opacity=".3" stroke="#f59e0b" stroke-width="1.5"/>
+    <!-- C(n=1) → 舵机(n=1) -->
+    <polygon points="0,0 -87,180 -195,44" fill="#ef4444" opacity=".3" stroke="#ef4444" stroke-width="1.5"/>
+    <!-- 舵机(n=1) → 云台(n=1) -->
+    <polygon points="0,0 -195,44 -156,-125" fill="#14b8a6" opacity=".3" stroke="#14b8a6" stroke-width="1.5"/>
+    <!-- 云台(n=1) → STM32(n=10) -->
+    <polygon points="0,0 -156,-125 0,-200" fill="#a855f7" opacity=".3" stroke="#a855f7" stroke-width="1.5"/>
+
+    <!-- 数据点 -->
+    <circle cx="0" cy="-200" r="6" fill="#6366f1" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="156" cy="-125" r="5" fill="#06b6d4" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="195" cy="44" r="5" fill="#10b981" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="87" cy="180" r="4" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+    <circle cx="-87" cy="180" r="4" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+    <circle cx="-195" cy="44" r="4" fill="#14b8a6" stroke="#fff" stroke-width="2"/>
+    <circle cx="-156" cy="-125" r="4" fill="#a855f7" stroke="#fff" stroke-width="2"/>
+
+    <!-- 标签 -->
+    <text x="0" y="-215" text-anchor="middle" font-size="13" font-weight="700" fill="#6366f1">STM32</text>
+    <text x="0" y="-200" text-anchor="middle" font-size="10" fill="#6366f1" font-weight="600">10 篇</text>
+
+    <text x="175" y="-135" text-anchor="middle" font-size="12" font-weight="600" fill="#06b6d4">ROS</text>
+    <text x="175" y="-120" text-anchor="middle" font-size="10" fill="#06b6d4">3 篇</text>
+
+    <text x="215" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#10b981">滤波算法</text>
+    <text x="215" y="65" text-anchor="middle" font-size="10" fill="#10b981">2 篇</text>
+
+    <text x="100" y="200" text-anchor="middle" font-size="11" font-weight="600" fill="#f59e0b">电机驱动</text>
+    <text x="100" y="215" text-anchor="middle" font-size="10" fill="#f59e0b">1 篇</text>
+
+    <text x="-100" y="200" text-anchor="middle" font-size="11" font-weight="600" fill="#ef4444">C</text>
+    <text x="-100" y="215" text-anchor="middle" font-size="10" fill="#ef4444">1 篇</text>
+
+    <text x="-215" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="#14b8a6">舵机</text>
+    <text x="-215" y="65" text-anchor="middle" font-size="10" fill="#14b8a6">1 篇</text>
+
+    <text x="-175" y="-135" text-anchor="middle" font-size="11" font-weight="600" fill="#a855f7">云台</text>
+    <text x="-175" y="-120" text-anchor="middle" font-size="10" fill="#a855f7">1 篇</text>
+  </g>
+</svg>

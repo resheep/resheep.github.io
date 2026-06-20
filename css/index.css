@@ -8481,11 +8481,30 @@ blockquote.pullquote.right {
   -o-transform: translateY(-8px);
   -ms-transform: translateY(-8px);
   transform: translateY(-8px);
-  -webkit-transition: opacity 0.4s ease, -webkit-transform 0.4s ease, background 0.4s ease;
-  -moz-transition: opacity 0.4s ease, -moz-transform 0.4s ease, background 0.4s ease;
-  -o-transition: opacity 0.4s ease, -o-transform 0.4s ease, background 0.4s ease;
-  -ms-transition: opacity 0.4s ease, -ms-transform 0.4s ease, background 0.4s ease;
-  transition: opacity 0.4s ease, transform 0.4s ease, background 0.4s ease;
+  -webkit-transition: opacity 0.4s ease, -webkit-transform 0.4s ease;
+  -moz-transition: opacity 0.4s ease, -moz-transform 0.4s ease;
+  -o-transition: opacity 0.4s ease, -o-transform 0.4s ease;
+  -ms-transition: opacity 0.4s ease, -ms-transform 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+#nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: -webkit-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
+  background: -moz-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
+  background: -o-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
+  background: -ms-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
+  background: linear-gradient(to right, #ffb6c1, #87ceeb, #fff);
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+  -webkit-transition: opacity 0.5s ease;
+  -moz-transition: opacity 0.5s ease;
+  -o-transition: opacity 0.5s ease;
+  -ms-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+  z-index: -1;
 }
 #nav.show {
   opacity: 1;
@@ -8498,7 +8517,16 @@ blockquote.pullquote.right {
   transform: translateY(0);
   background: transparent;
 }
-/* 非首页(归档/标签/分类等)：左右非线性渐变 */
+/* 固定导航栏：渐变背景淡入 */
+#page-header.nav-fixed #nav {
+  background: transparent;
+}
+#page-header.nav-fixed #nav::before {
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
+}
+/* 非首页(归档/标签/分类等)：始终显示渐变 */
 #page-header.not-top-img #nav {
   opacity: 1;
   -ms-filter: none;
@@ -8508,14 +8536,6 @@ blockquote.pullquote.right {
   -o-transform: translateY(0);
   -ms-transform: translateY(0);
   transform: translateY(0);
-  background: -webkit-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
-  background: -moz-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
-  background: -o-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
-  background: -ms-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
-  background: linear-gradient(to right, #ffb6c1, #87ceeb, #fff);
-}
-/* 固定导航栏：同样渐变 */
-#page-header.nav-fixed #nav {
   background: -webkit-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
   background: -moz-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
   background: -o-linear-gradient(left, #ffb6c1, #87ceeb, #fff);
