@@ -8217,6 +8217,116 @@ blockquote.pullquote.right {
   -ms-animation: spin 1s linear infinite;
   animation: spin 1s linear infinite;
 }
+@media screen and (max-width: 768px) {
+  #local-search .search-dialog .search-result-list {
+    max-height: calc(var(--search-height) - 200px) !important;
+  }
+}
+#local-search #local-search-stats .search-result-stats {
+  text-align: left;
+}
+#local-search .search-keyword {
+  font-weight: 600;
+}
+#local-search #loading-database ~ * {
+  visibility: hidden;
+}
+.search-dialog {
+  border-radius: 16px !important;
+  -webkit-box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+.search-dialog hr {
+  display: none;
+}
+.search-dialog .search-close-button {
+  display: none;
+}
+.search-dialog .local-search-input input {
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  -webkit-transition: all 0.3s;
+  -moz-transition: all 0.3s;
+  -o-transition: all 0.3s;
+  -ms-transition: all 0.3s;
+  transition: all 0.3s;
+}
+.search-dialog .local-search-input input:focus {
+  border-color: #6366f1;
+  background: #fff;
+  -webkit-box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+}
+.search-dialog .local-search-input input::placeholder {
+  color: #94a3b8;
+}
+.search-dialog .search-close-button {
+  -webkit-transition: color 0.25s, -webkit-transform 0.25s;
+  -moz-transition: color 0.25s, -moz-transform 0.25s;
+  -o-transition: color 0.25s, -o-transform 0.25s;
+  -ms-transition: color 0.25s, -ms-transform 0.25s;
+  transition: color 0.25s, transform 0.25s;
+}
+.search-dialog .search-close-button:hover {
+  color: #ef4444;
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+.search-dialog .local-search-hit-item {
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  -webkit-transition: all 0.25s;
+  -moz-transition: all 0.25s;
+  -o-transition: all 0.25s;
+  -ms-transition: all 0.25s;
+  transition: all 0.25s;
+}
+.search-dialog .local-search-hit-item:hover {
+  background: #fff;
+  border-color: #c7d2fe;
+  -webkit-transform: translateX(3px);
+  -moz-transform: translateX(3px);
+  -o-transform: translateX(3px);
+  -ms-transform: translateX(3px);
+  transform: translateX(3px);
+  -webkit-box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+  box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+}
+.search-dialog .search-result-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.search-dialog p.search-result {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.8;
+}
+.search-keyword {
+  color: #ef4444 !important;
+  background: rgba(239,68,68,0.1) !important;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+#search-mask {
+  background: rgba(0,0,0,0.3) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
 @-moz-keyframes spin {
   to {
     -webkit-transform: rotate(360deg);
@@ -8251,6 +8361,94 @@ blockquote.pullquote.right {
     -o-transform: rotate(360deg);
     -ms-transform: rotate(360deg);
     transform: rotate(360deg);
+  }
+}
+@-moz-keyframes searchIn {
+  from {
+    opacity: 0;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    -webkit-transform: scale(0.92) translateY(-10px);
+    -moz-transform: scale(0.92) translateY(-10px);
+    -o-transform: scale(0.92) translateY(-10px);
+    -ms-transform: scale(0.92) translateY(-10px);
+    transform: scale(0.92) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    -ms-filter: none;
+    filter: none;
+    -webkit-transform: scale(1) translateY(0);
+    -moz-transform: scale(1) translateY(0);
+    -o-transform: scale(1) translateY(0);
+    -ms-transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0);
+  }
+}
+@-webkit-keyframes searchIn {
+  from {
+    opacity: 0;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    -webkit-transform: scale(0.92) translateY(-10px);
+    -moz-transform: scale(0.92) translateY(-10px);
+    -o-transform: scale(0.92) translateY(-10px);
+    -ms-transform: scale(0.92) translateY(-10px);
+    transform: scale(0.92) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    -ms-filter: none;
+    filter: none;
+    -webkit-transform: scale(1) translateY(0);
+    -moz-transform: scale(1) translateY(0);
+    -o-transform: scale(1) translateY(0);
+    -ms-transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0);
+  }
+}
+@-o-keyframes searchIn {
+  from {
+    opacity: 0;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    -webkit-transform: scale(0.92) translateY(-10px);
+    -moz-transform: scale(0.92) translateY(-10px);
+    -o-transform: scale(0.92) translateY(-10px);
+    -ms-transform: scale(0.92) translateY(-10px);
+    transform: scale(0.92) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    -ms-filter: none;
+    filter: none;
+    -webkit-transform: scale(1) translateY(0);
+    -moz-transform: scale(1) translateY(0);
+    -o-transform: scale(1) translateY(0);
+    -ms-transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes searchIn {
+  from {
+    opacity: 0;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: alpha(opacity=0);
+    -webkit-transform: scale(0.92) translateY(-10px);
+    -moz-transform: scale(0.92) translateY(-10px);
+    -o-transform: scale(0.92) translateY(-10px);
+    -ms-transform: scale(0.92) translateY(-10px);
+    transform: scale(0.92) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    -ms-filter: none;
+    filter: none;
+    -webkit-transform: scale(1) translateY(0);
+    -moz-transform: scale(1) translateY(0);
+    -o-transform: scale(1) translateY(0);
+    -ms-transform: scale(1) translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 /* 菜单栏居中 */

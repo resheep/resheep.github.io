@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 130" font-family="'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <rect width="620" height="130" fill="#f8fafc" rx="12"/>
+  <!-- 标题 -->
+  <text x="310" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">互补滤波公式</text>
+  <!-- 公式 -->
+  <rect x="30" y="36" width="560" height="42" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#s)"/>
+  <text x="310" y="55" text-anchor="middle" font-size="16" fill="#1e293b" font-weight="600">
+    <tspan fill="#6366f1">angle</tspan>
+    <tspan fill="#475569"> = </tspan>
+    <tspan fill="#f97316">0.98</tspan>
+    <tspan fill="#475569"> × (</tspan>
+    <tspan fill="#6366f1">angle</tspan>
+    <tspan fill="#475569"> + </tspan>
+    <tspan fill="#06b6d4">gyro</tspan>
+    <tspan fill="#475569"> × </tspan>
+    <tspan fill="#06b6d4">dt</tspan>
+    <tspan fill="#475569">) + </tspan>
+    <tspan fill="#10b981">0.02</tspan>
+    <tspan fill="#475569"> × </tspan>
+    <tspan fill="#10b981">accel_angle</tspan>
+  </text>
+  <line x1="68" y1="65" x2="195" y2="78" stroke="#f97316" stroke-width="1.2" marker-end="url(#ar)"/>
+  <text x="132" y="90" text-anchor="middle" font-size="9" fill="#f97316" font-weight="600">陀螺仪权重（高频信任）</text>
+  <line x1="320" y1="65" x2="440" y2="78" stroke="#10b981" stroke-width="1.2" marker-end="url(#ar)"/>
+  <text x="403" y="90" text-anchor="middle" font-size="9" fill="#10b981" font-weight="600">加速度计权重（低频修正）</text>
+  <!-- 说明 -->
+  <text x="310" y="115" text-anchor="middle" font-size="10" fill="#64748b">陀螺仪高频准但漂移 · 加速度计低频准但抖动 · 互补滤波取各自长处</text>
+  <defs>
+    <filter id="s"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/></filter>
+    <marker id="ar" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#94a3b8"/></marker>
+  </defs>
+</svg>
