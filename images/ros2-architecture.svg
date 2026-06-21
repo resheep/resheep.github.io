@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 340" font-family="'Segoe UI', 'PingFang SC', sans-serif">
+  <defs>
+    <linearGradient id="topicGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient>
+    <linearGradient id="serviceGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#ea580c"/></linearGradient>
+    <linearGradient id="actionGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#6366f1"/></marker>
+    <marker id="arrowO" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#f97316"/></marker>
+    <marker id="arrowG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10Z" fill="#10b981"/></marker>
+  </defs>
+  <rect width="620" height="340" fill="#f8fafc" rx="14"/>
+
+  <!-- 标题 -->
+  <text x="310" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">ROS2 通信架构</text>
+
+  <!-- 系统外框 -->
+  <rect x="15" y="45" width="590" height="280" rx="12" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <text x="310" y="62" text-anchor="middle" font-size="10" fill="#94a3b8">ROS2 系统</text>
+
+  <!-- ========== Topic 行 ========== -->
+  <rect x="40" y="82" width="140" height="44" rx="10" fill="url(#topicGrad)" filter="url(#s)"/>
+  <text x="110" y="100" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 A</text>
+  <text x="110" y="116" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">发布者 (Publisher)</text>
+
+  <!-- 箭头 Topic -->
+  <line x1="180" y1="104" x2="260" y2="104" stroke="#6366f1" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="204" y="88" width="60" height="18" rx="4" fill="#eef2ff" stroke="#6366f1" stroke-width="1.2"/>
+  <text x="234" y="101" text-anchor="middle" font-size="9" fill="#6366f1" font-weight="600">Topic</text>
+
+  <rect x="270" y="82" width="140" height="44" rx="10" fill="url(#topicGrad)" filter="url(#s)"/>
+  <text x="340" y="100" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 B</text>
+  <text x="340" y="116" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">订阅者 (Subscriber)</text>
+
+  <text x="490" y="100" font-size="10" fill="#6366f1" font-weight="600">单向通信</text>
+  <text x="490" y="114" font-size="9" fill="#94a3b8">发布 → 订阅</text>
+
+  <!-- ========== Service 行 ========== -->
+  <rect x="40" y="150" width="140" height="44" rx="10" fill="url(#serviceGrad)" filter="url(#s)"/>
+  <text x="110" y="168" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 C</text>
+  <text x="110" y="184" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">客户端 (Client)</text>
+
+  <!-- 双向箭头 Service -->
+  <line x1="180" y1="172" x2="260" y2="172" stroke="#f97316" stroke-width="2.5" marker-end="url(#arrowO)"/>
+  <line x1="260" y1="184" x2="180" y2="184" stroke="#f97316" stroke-width="2.5" marker-end="url(#arrowO)"/>
+  <rect x="204" y="156" width="60" height="18" rx="4" fill="#fff7ed" stroke="#f97316" stroke-width="1.2"/>
+  <text x="234" y="169" text-anchor="middle" font-size="9" fill="#f97316" font-weight="600">Service</text>
+
+  <rect x="270" y="150" width="140" height="44" rx="10" fill="url(#serviceGrad)" filter="url(#s)"/>
+  <text x="340" y="168" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 D</text>
+  <text x="340" y="184" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">服务器 (Server)</text>
+
+  <text x="490" y="168" font-size="10" fill="#f97316" font-weight="600">双向通信</text>
+  <text x="490" y="182" font-size="9" fill="#94a3b8">请求 → 响应</text>
+
+  <!-- ========== Action 行 ========== -->
+  <rect x="40" y="218" width="140" height="44" rx="10" fill="url(#actionGrad)" filter="url(#s)"/>
+  <text x="110" y="236" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 E</text>
+  <text x="110" y="252" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">客户端 (Client)</text>
+
+  <!-- Action 箭头 -->
+  <line x1="180" y1="236" x2="260" y2="236" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrowG)"/>
+  <line x1="260" y1="248" x2="180" y2="248" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrowG)"/>
+  <path d="M180,228 L260,222" stroke="#10b981" stroke-width="1.5" fill="none" stroke-dasharray="4,3" marker-end="url(#arrowG)"/>
+  <rect x="204" y="224" width="60" height="18" rx="4" fill="#ecfdf5" stroke="#10b981" stroke-width="1.2"/>
+  <text x="234" y="237" text-anchor="middle" font-size="9" fill="#10b981" font-weight="600">Action</text>
+
+  <rect x="270" y="218" width="140" height="44" rx="10" fill="url(#actionGrad)" filter="url(#s)"/>
+  <text x="340" y="236" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">节点 F</text>
+  <text x="340" y="252" text-anchor="middle" fill="#fff" font-size="9" opacity=".8">服务器 (Server)</text>
+
+  <text x="490" y="236" font-size="10" fill="#10b981" font-weight="600">带反馈的双向</text>
+  <text x="490" y="250" font-size="9" fill="#94a3b8">目标 → 反馈 → 结果</text>
+
+  <!-- 底部说明 -->
+  <rect x="30" y="280" width="560" height="32" rx="8" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="50" y="289" width="14" height="14" rx="3" fill="url(#topicGrad)"/>
+  <text x="68" y="301" font-size="11" fill="#475569">Topic</text>
+  <rect x="130" y="289" width="14" height="14" rx="3" fill="url(#serviceGrad)"/>
+  <text x="148" y="301" font-size="11" fill="#475569">Service</text>
+  <rect x="215" y="289" width="14" height="14" rx="3" fill="url(#actionGrad)"/>
+  <text x="233" y="301" font-size="11" fill="#475569">Action</text>
+  <text x="310" y="301" font-size="10" fill="#94a3b8">|</text>
+  <text x="330" y="301" font-size="10" fill="#94a3b8">DDS 去中心化通信 · 无 roscore</text>
+</svg>
