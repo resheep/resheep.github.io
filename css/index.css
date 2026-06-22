@@ -8340,7 +8340,7 @@ body {
 .layout > #post,
 .layout > #page,
 .layout > #archive {
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.9);
 }
 /* ========== 手机端适配 ========== */
 @media screen and (max-width: 768px) {
